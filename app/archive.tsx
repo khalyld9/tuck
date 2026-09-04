@@ -4,7 +4,8 @@ import { Alert, StyleSheet, View } from 'react-native';
 
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { HeroHeader } from '@/components/ui/HeroHeader';
+import { LargeTitleHeader } from '@/components/ios/LargeTitleHeader';
+import { NavBar } from '@/components/ios/NavBar';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -66,33 +67,23 @@ export default function ArchiveScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <HeroHeader
-          insideGutter
+        <LargeTitleHeader
           title="Archive"
           subtitle={
             items.length === 0
               ? 'Nothing archived'
               : `${items.length} finished thing${items.length === 1 ? '' : 's'}`
           }
-          navRow={
-            <>
+          actions={
+            items.length > 0 ? (
               <IconButton
-                name="arrow-left"
-                onPress={handleBack}
-                accessibilityLabel="Go back"
-                color={theme.colors.heroText}
+                name="trash-2"
+                onPress={handleClear}
+                accessibilityLabel="Permanently delete everything in the archive"
+                color={theme.colors.danger}
                 size={19}
               />
-              {items.length > 0 ? (
-                <IconButton
-                  name="trash-2"
-                  onPress={handleClear}
-                  accessibilityLabel="Permanently delete everything in the archive"
-                  color={theme.colors.heroText}
-                  size={18}
-                />
-              ) : null}
-            </>
+            ) : null
           }
         />
 
@@ -108,6 +99,8 @@ export default function ArchiveScreen() {
 
   return (
     <Screen>
+      <NavBar leading="back" leadingLabel="Browse" onLeadingPress={handleBack} />
+
       <ItemList
         items={items}
         viewMode="list"

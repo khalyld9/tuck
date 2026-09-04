@@ -4,7 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { HeroHeader } from '@/components/ui/HeroHeader';
+import { NavBar } from '@/components/ios/NavBar';
+import { LargeTitleHeader } from '@/components/ios/LargeTitleHeader';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { spacing } from '@/constants/tokens';
@@ -37,35 +38,25 @@ export default function FavoritesScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <HeroHeader
-          insideGutter
+        <LargeTitleHeader
           title="Favourites"
           subtitle={
             items.length === 0
               ? 'Nothing starred yet'
               : `${items.length} thing${items.length === 1 ? '' : 's'} you love`
           }
-          navRow={
-            <>
+          actions={
+            items.length > 0 ? (
               <IconButton
-                name="arrow-left"
-                onPress={handleBack}
-                accessibilityLabel="Go back"
-                color={theme.colors.heroText}
-                size={19}
+                name={viewMode === 'list' ? 'grid-2x2' : 'list'}
+                onPress={handleToggleView}
+                accessibilityLabel={
+                  viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
+                }
+                color={theme.colors.accent}
+                size={20}
               />
-              {items.length > 0 ? (
-                <IconButton
-                  name={viewMode === 'list' ? 'grid-2x2' : 'list'}
-                  onPress={handleToggleView}
-                  accessibilityLabel={
-                    viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
-                  }
-                  color={theme.colors.heroText}
-                  size={19}
-                />
-              ) : null}
-            </>
+            ) : null
           }
         />
       </View>
@@ -75,6 +66,8 @@ export default function FavoritesScreen() {
 
   return (
     <Screen>
+      <NavBar leading="back" leadingLabel="Browse" onLeadingPress={handleBack} />
+
       <ItemList
         items={items}
         viewMode={viewMode}

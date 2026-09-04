@@ -10,7 +10,7 @@ import { tabBarClearanceFor } from '@/components/navigation/metrics';
 import { IconButton } from '@/components/ui/IconButton';
 import { OptionRow } from '@/components/ui/OptionRow';
 import { Screen } from '@/components/ui/Screen';
-import { HeroHeader } from '@/components/ui/HeroHeader';
+import { LargeTitleHeader } from '@/components/ios/LargeTitleHeader';
 import { SearchField } from '@/components/ui/SearchField';
 import { Sheet } from '@/components/ui/Sheet';
 import { Text } from '@/components/ui/Text';
@@ -85,32 +85,31 @@ export default function SavedScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <HeroHeader
-          insideGutter
+        <LargeTitleHeader
           title="Saved"
           subtitle={
             counts.active === 0
               ? 'Nothing tucked away yet'
               : `${counts.active} thing${counts.active === 1 ? '' : 's'} tucked away`
           }
-          accessory={
+          actions={
             <View style={styles.actions}>
               <IconButton
                 name="heart"
                 onPress={handleToggleFavorites}
                 accessibilityLabel={favoritesOnly ? 'Show all items' : 'Show favourites only'}
                 accessibilityState={{ selected: favoritesOnly }}
-                variant={favoritesOnly ? 'soft' : 'plain'}
-                color={favoritesOnly ? theme.colors.favorite : theme.colors.heroText}
+                variant="plain"
+                color={favoritesOnly ? theme.colors.favorite : theme.colors.accent}
                 fill={favoritesOnly ? theme.colors.favorite : 'none'}
-                size={19}
+                size={20}
               />
               <IconButton
                 name="arrow-up-down"
                 onPress={() => setSortSheetOpen(true)}
                 accessibilityLabel={`Sort. Currently ${SORT_LABELS[sort]}`}
-                color={theme.colors.heroText}
-                size={19}
+                color={theme.colors.accent}
+                size={20}
               />
               <IconButton
                 name={viewMode === 'list' ? 'grid-2x2' : 'list'}
@@ -118,20 +117,20 @@ export default function SavedScreen() {
                 accessibilityLabel={
                   viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
                 }
-                color={theme.colors.heroText}
-                size={19}
+                color={theme.colors.accent}
+                size={20}
               />
             </View>
           }
-          overlap={
-            <SearchField
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search your tucked things…"
-              elevated
-            />
-          }
         />
+
+        <View style={styles.searchWrap}>
+          <SearchField
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search your tucked things…"
+          />
+        </View>
 
         <View style={styles.rail}>
           <CategoryRail
@@ -248,9 +247,13 @@ const styles = StyleSheet.create({
   listWrap: {
     flex: 1,
   },
+  searchWrap: {
+    paddingHorizontal: screenPadding,
+    paddingTop: spacing.xs,
+  },
   rail: {
     marginHorizontal: -screenPadding,
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
   resultCount: {
     marginTop: spacing.md,

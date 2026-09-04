@@ -14,6 +14,8 @@ import { Text } from '@/components/ui/Text';
 export interface UpcomingCardProps {
   item: SavedItem;
   onPress: (item: SavedItem) => void;
+  /** Renders as a row inside an `InsetGroup` rather than a standalone card. */
+  inset?: boolean;
 }
 
 /**
@@ -21,7 +23,11 @@ export interface UpcomingCardProps {
  * A missed reminder is marked with both a colour change and an explicit
  * "Missed" label, so the state never relies on colour alone.
  */
-export const UpcomingCard = memo(function UpcomingCard({ item, onPress }: UpcomingCardProps) {
+export const UpcomingCard = memo(function UpcomingCard({
+  item,
+  onPress,
+  inset,
+}: UpcomingCardProps) {
   const theme = useTheme();
   const category = useCategoriesStore((state) => state.byId[item.categoryId]);
   const tone = theme.tones[category?.tone ?? 'neutral'];
@@ -38,7 +44,8 @@ export const UpcomingCard = memo(function UpcomingCard({ item, onPress }: Upcomi
   return (
     <Pressable
       onPress={handlePress}
-      pressScale={0.98}
+      pressScale={inset ? 1 : 0.98}
+      pressedBackgroundColor={inset ? theme.colors.surfacePressed : undefined}
       haptic="light"
       accessibilityRole="button"
       accessibilityLabel={item.title}
@@ -47,10 +54,14 @@ export const UpcomingCard = memo(function UpcomingCard({ item, onPress }: Upcomi
           ? `Reminder ${overdue ? 'was' : 'set for'} ${formatDateTime(item.reminderAt)}`
           : undefined
       }
-      style={[
-        styles.card,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
-      ]}
+      style={
+        inset
+          ? styles.row
+          : [
+              styles.card,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+            ]
+      }
     >
       <View style={[styles.icon, { backgroundColor: tone.bg }]}>
         <Icon name={category?.icon ?? 'bookmark'} size={17} color={tone.fg} strokeWidth={2.1} />
@@ -82,6 +93,15 @@ export const UpcomingCard = memo(function UpcomingCard({ item, onPress }: Upcomi
 });
 
 const styles = StyleSheet.create({
+  /** Grouped-list form — the InsetGroup draws the surface. */
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: 60,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -56,7 +56,6 @@ export const SummaryStrip = memo(function SummaryStrip({
       contentContainerStyle={styles.row}
       // The strip bleeds to both screen edges so the last tile can scroll
       // fully into view instead of stopping at the gutter.
-      style={styles.scroll}
     >
       <Pressable
         onPress={onPressTotal}
@@ -119,9 +118,6 @@ export const SummaryStrip = memo(function SummaryStrip({
 });
 
 const styles = StyleSheet.create({
-  scroll: {
-    marginHorizontal: -screenPadding,
-  },
   row: {
     flexDirection: 'row',
     gap: spacing.sm + 2,

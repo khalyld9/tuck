@@ -5,12 +5,13 @@ import { StyleSheet, View } from 'react-native';
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
-import { HeroHeader } from '@/components/ui/HeroHeader';
+import { LargeTitleHeader } from '@/components/ios/LargeTitleHeader';
+import { NavBar } from '@/components/ios/NavBar';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { Text } from '@/components/ui/Text';
-import { radius, spacing } from '@/constants/tokens';
+import { radius, screenPadding, spacing } from '@/constants/tokens';
 import { useDebounced, useItemQuery } from '@/hooks/useItemQuery';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useTheme } from '@/hooks/useTheme';
@@ -56,48 +57,38 @@ export default function CategoryScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <HeroHeader
-          insideGutter
+        <LargeTitleHeader
           title={category.name}
           subtitle={`${items.length} thing${items.length === 1 ? '' : 's'} tucked away`}
-          navRow={
+          actions={
             <>
-              <IconButton
-                name="arrow-left"
-                onPress={handleBack}
-                accessibilityLabel="Go back"
-                color={theme.colors.heroText}
-                size={19}
-              />
+              {/* The category's own colour, kept as a small badge. */}
+              <View style={[styles.icon, { backgroundColor: tone.bg }]}>
+                <Icon name={category.icon} size={19} color={tone.fg} strokeWidth={2} />
+              </View>
               <IconButton
                 name={viewMode === 'list' ? 'grid-2x2' : 'list'}
                 onPress={handleToggleView}
                 accessibilityLabel={
                   viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
                 }
-                color={theme.colors.heroText}
-                size={19}
+                color={theme.colors.accent}
+                size={20}
               />
             </>
           }
-          // The category's own colour, carried onto the masthead.
-          accessory={
-            <View style={[styles.icon, { backgroundColor: tone.bg }]}>
-              <Icon name={category.icon} size={24} color={tone.fg} strokeWidth={2} />
-            </View>
-          }
-          // Search only appears once the category is big enough to need it.
-          overlap={
-            items.length > 6 || debounced.length > 0 ? (
-              <SearchField
-                value={search}
-                onChangeText={setSearch}
-                placeholder={`Search ${category.name.toLowerCase()}…`}
-                elevated
-              />
-            ) : undefined
-          }
         />
+
+        {/* Search only appears once the category is big enough to need it. */}
+        {items.length > 6 || debounced.length > 0 ? (
+          <View style={styles.searchWrap}>
+            <SearchField
+              value={search}
+              onChangeText={setSearch}
+              placeholder={`Search ${category.name.toLowerCase()}…`}
+            />
+          </View>
+        ) : null}
       </View>
     ),
     [
@@ -108,7 +99,7 @@ export default function CategoryScreen() {
       handleToggleView,
       items.length,
       search,
-      theme.colors.heroText,
+      theme.colors.accent,
       tone.bg,
       tone.fg,
       viewMode,
@@ -117,6 +108,8 @@ export default function CategoryScreen() {
 
   return (
     <Screen>
+      <NavBar leading="back" leadingLabel="Back" onLeadingPress={handleBack} />
+
       <ItemList
         items={items}
         viewMode={viewMode}
@@ -155,10 +148,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   icon: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  searchWrap: {
+    paddingHorizontal: screenPadding,
+    paddingTop: spacing.xs,
   },
 });

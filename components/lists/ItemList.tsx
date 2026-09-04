@@ -6,8 +6,9 @@ import Animated, { FadeIn, Layout } from 'react-native-reanimated';
 import { ItemCard } from '@/components/cards/ItemCard';
 import { ItemGridCard } from '@/components/cards/ItemGridCard';
 import { SwipeableItem } from '@/components/cards/SwipeableItem';
-import { cardMetrics, screenPadding, spacing } from '@/constants/tokens';
+import { cardMetrics, radius, screenPadding, spacing } from '@/constants/tokens';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useTheme } from '@/hooks/useTheme';
 import type { IconName } from '@/components/ui/Icon';
 import type { SavedItem, ViewMode } from '@/types/models';
 
@@ -49,6 +50,7 @@ export const ItemList = memo(function ItemList({
 }: ItemListProps) {
   const { width } = useWindowDimensions();
   const reducedMotion = useReducedMotion();
+  const theme = useTheme();
 
   // Two columns on phones, three on wider screens (tablets, landscape).
   const columns = viewMode === 'grid' ? (width >= 700 ? 3 : 2) : 1;
@@ -58,7 +60,7 @@ export const ItemList = memo(function ItemList({
       : width - screenPadding * 2;
 
   const renderItem = useCallback(
-    ({ item }: { item: SavedItem }) => {
+    ({ item, index }: { item: SavedItem; index: number }) => {
       if (viewMode === 'grid') {
         return (
           <Animated.View
@@ -70,17 +72,39 @@ export const ItemList = memo(function ItemList({
         );
       }
 
-      const card = <ItemCard item={item} onPress={onPressItem} />;
+      // The list reads as one continuous inset group, so each row paints the
+      // shared surface itself and only the first/last rows round their outer
+      // corners. A virtualised list can't be wrapped in a container, so the
+      // grouping has to be reconstructed per row.
+      const isFirst = index === 0;
+      const isLast = index === items.length - 1;
+
+      const card = (
+        <View
+          style={[
+            styles.groupRow,
+            { backgroundColor: theme.colors.surface },
+            isFirst && styles.groupRowFirst,
+            isLast && styles.groupRowLast,
+          ]}
+        >
+          <ItemCard item={item} onPress={onPressItem} inset />
+          {!isLast ? (
+            <View style={styles.separatorTrack}>
+              <View style={[styles.separator, { backgroundColor: theme.colors.border }]} />
+            </View>
+          ) : null}
+        </View>
+      );
 
       // Swipes only make sense when there's something to swipe to.
       if (!swipeEnabled || (!onFavorite && !onArchive)) {
-        return <View style={styles.listCell}>{card}</View>;
+        return card;
       }
 
       return (
         <Animated.View
           layout={reducedMotion ? undefined : Layout.springify().damping(22).stiffness(220)}
-          style={styles.listCell}
         >
           <SwipeableItem
             onFavorite={onFavorite ? () => onFavorite(item) : undefined}
@@ -101,8 +125,11 @@ export const ItemList = memo(function ItemList({
       onArchive,
       onFavorite,
       onPressItem,
+      items.length,
       reducedMotion,
       swipeEnabled,
+      theme.colors.border,
+      theme.colors.surface,
       viewMode,
     ]
   );
@@ -135,8 +162,22 @@ export const ItemList = memo(function ItemList({
 });
 
 const styles = StyleSheet.create({
-  listCell: {
-    marginBottom: spacing.sm + 2,
+  groupRow: {
+    overflow: 'hidden',
+  },
+  groupRowFirst: {
+    borderTopLeftRadius: radius.sm,
+    borderTopRightRadius: radius.sm,
+  },
+  groupRowLast: {
+    borderBottomLeftRadius: radius.sm,
+    borderBottomRightRadius: radius.sm,
+  },
+  separatorTrack: {
+    paddingLeft: spacing.lg + cardMetrics.listThumb + spacing.md,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
   },
   gridCell: {
     marginBottom: cardMetrics.gap,

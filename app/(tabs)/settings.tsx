@@ -1,21 +1,24 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Platform, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ListRow, ListSection, ListToggleRow } from '@/components/ios/List';
+import {
+  CompactNavBar,
+  LargeTitleHeader,
+  useLargeTitleTopInset,
+} from '@/components/ios/LargeTitleHeader';
 import { tabBarClearanceFor } from '@/components/navigation/metrics';
-import { Icon, type IconName } from '@/components/ui/Icon';
 import { OptionRow } from '@/components/ui/OptionRow';
-import { Pressable } from '@/components/ui/Pressable';
-import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
-import { Toggle } from '@/components/ui/Toggle';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing } from '@/constants/tokens';
+import type { SymbolName } from '@/components/ui/Symbol';
+import { screenPadding, spacing } from '@/constants/tokens';
 import { resetUserData } from '@/db/database';
-import { useTheme } from '@/hooks/useTheme';
 import { haptics } from '@/lib/haptics';
 import {
   exportBackup,
@@ -34,18 +37,28 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { useUiStore } from '@/store/useUiStore';
 import type { ThemePreference } from '@/types/models';
 
-const THEME_OPTIONS: { value: ThemePreference; label: string; icon: IconName; hint: string }[] = [
-  { value: 'system', label: 'Match device', icon: 'sun-moon', hint: 'Follows your system setting' },
-  { value: 'light', label: 'Light', icon: 'sun', hint: 'Always light' },
-  { value: 'dark', label: 'Dark', icon: 'moon', hint: 'Always dark' },
-];
+const THEME_OPTIONS: { value: ThemePreference; label: string; symbol: SymbolName; hint: string }[] =
+  [
+    {
+      value: 'system',
+      label: 'Automatic',
+      symbol: 'systemTheme',
+      hint: 'Follows your device setting',
+    },
+    { value: 'light', label: 'Light', symbol: 'light', hint: 'Always light' },
+    { value: 'dark', label: 'Dark', symbol: 'dark', hint: 'Always dark' },
+  ];
+
+const ScrollView = Animated.ScrollView;
 
 /**
- * Settings — deliberately short. Preferences, data, and an honest privacy note.
+ * Settings, built as an iOS grouped list: a large title that collapses into a
+ * compact bar, then labelled sections of hairline-separated rows. No hero
+ * panel, no cards — the brown appears only as symbol tint and control accent.
  */
 export default function SettingsScreen() {
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const topInset = useLargeTitleTopInset();
 
   const settings = useSettingsStore();
   const categories = useCategoriesStore((state) => state.categories);
@@ -58,6 +71,11 @@ export default function SettingsScreen() {
   const [categorySheet, setCategorySheet] = useState(false);
   const [busy, setBusy] = useState<null | 'export' | 'import'>(null);
   const [permission, setPermission] = useState<PermissionState>('undetermined');
+
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
 
   useEffect(() => {
     getPermissionState().then(setPermission).catch(() => undefined);
@@ -229,155 +247,135 @@ export default function SettingsScreen() {
 
   const version =
     (Constants.expoConfig?.version as string | undefined) ?? '1.0.0';
+  const themeLabel = THEME_OPTIONS.find(
+    (option) => option.value === settings.themePreference
+  )?.label;
 
   return (
     <Screen>
+      <CompactNavBar title="Settings" scrollY={scrollY} />
+
       <ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={[
           styles.content,
           {
-            // The hero panel absorbs the top inset itself.
+            paddingTop: topInset,
             paddingBottom: tabBarClearanceFor(insets.bottom),
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <HeroHeader insideGutter title="Settings" subtitle="Yours, and only yours" />
+        <LargeTitleHeader title="Settings" scrollY={scrollY} />
 
-        <View style={styles.afterHero} />
+        <View style={styles.groups}>
+          <ListSection title="Appearance">
+            <ListRow
+              symbol="appearance"
+              label="Appearance"
+              value={themeLabel}
+              onPress={() => setThemeSheet(true)}
+            />
+          </ListSection>
 
-        {/* ── Appearance ─────────────────────────────────────────── */}
-        <Section title="Appearance">
-          <Row
-            icon="palette"
-            label="Theme"
-            value={THEME_OPTIONS.find((option) => option.value === settings.themePreference)?.label}
-            onPress={() => setThemeSheet(true)}
-          />
-        </Section>
+          <ListSection title="Preferences">
+            <ListToggleRow
+              symbol="haptics"
+              label="Haptic Feedback"
+              description={Platform.OS === 'web' ? 'Not available in the browser' : undefined}
+              value={settings.hapticsEnabled}
+              onValueChange={(value) => void settings.set('hapticsEnabled', value)}
+              disabled={Platform.OS === 'web'}
+              accessibilityHint="Small vibrations when you save, favourite or archive"
+            />
+            <ListRow
+              symbol="category"
+              label="Default Category"
+              value={defaultCategory?.name}
+              onPress={() => setCategorySheet(true)}
+            />
+            <ListToggleRow
+              symbol="confirmDelete"
+              label="Confirm Before Deleting"
+              value={settings.confirmDeletion}
+              onValueChange={(value) => void settings.set('confirmDeletion', value)}
+              accessibilityHint="Ask for confirmation before permanently deleting an item"
+            />
+          </ListSection>
 
-        {/* ── Preferences ────────────────────────────────────────── */}
-        <Section title="Preferences">
-          <Row
-            icon="vibrate"
-            label="Haptic feedback"
-            description={Platform.OS === 'web' ? 'Not available in the browser' : undefined}
-            control={
-              <Toggle
-                value={settings.hapticsEnabled}
-                onValueChange={(value) => void settings.set('hapticsEnabled', value)}
-                disabled={Platform.OS === 'web'}
-                accessibilityLabel="Haptic feedback"
-                accessibilityHint="Small vibrations when you save, favourite or archive"
-              />
+          <ListSection
+            title="Notifications"
+            footer={
+              permission === 'denied'
+                ? 'Notifications are turned off for Tuck in your device settings.'
+                : permission === 'unsupported'
+                  ? 'Reminders run on the phone app, not in a browser.'
+                  : 'Reminders are scheduled on this device. Nothing is sent to a server.'
             }
-          />
-          <Divider />
-          <Row
-            icon="bookmark"
-            label="Default category"
-            value={defaultCategory?.name}
-            onPress={() => setCategorySheet(true)}
-          />
-          <Divider />
-          <Row
-            icon="trash-2"
-            label="Confirm before deleting"
-            control={
-              <Toggle
-                value={settings.confirmDeletion}
-                onValueChange={(value) => void settings.set('confirmDeletion', value)}
-                accessibilityLabel="Confirm before deleting"
-                accessibilityHint="Ask for confirmation before permanently deleting an item"
-              />
-            }
-          />
-        </Section>
+          >
+            <ListToggleRow
+              symbol="bell"
+              label="Reminders"
+              value={settings.remindersEnabled && permission !== 'denied'}
+              onValueChange={(value) => void handleRemindersToggle(value)}
+              disabled={permission === 'unsupported'}
+              accessibilityHint="Schedule local notifications for items with a reminder"
+            />
+          </ListSection>
 
-        {/* ── Notifications ──────────────────────────────────────── */}
-        <Section
-          title="Notifications"
-          footer={
-            permission === 'denied'
-              ? 'Notifications are turned off for Tuck in your device settings.'
-              : permission === 'unsupported'
-                ? 'Reminders run on the phone app, not in a browser.'
-                : 'Reminders are scheduled on this device. Nothing is sent to a server.'
-          }
-        >
-          <Row
-            icon="bell"
-            label="Reminders"
-            control={
-              <Toggle
-                value={settings.remindersEnabled && permission !== 'denied'}
-                onValueChange={(value) => void handleRemindersToggle(value)}
-                disabled={permission === 'unsupported'}
-                accessibilityLabel="Enable reminders"
-                accessibilityHint="Schedule local notifications for items with a reminder"
-              />
-            }
-          />
-        </Section>
+          <ListSection title="Data" footer="Backups are plain JSON files saved to your device.">
+            <ListRow
+              symbol="export"
+              label="Export Data"
+              value={`${counts.total} item${counts.total === 1 ? '' : 's'}`}
+              onPress={handleExport}
+              loading={busy === 'export'}
+            />
+            <ListRow
+              symbol="import"
+              label="Import Data"
+              onPress={handleImport}
+              loading={busy === 'import'}
+            />
+            <ListRow
+              symbol="archive"
+              label="Clear Archive"
+              value={counts.archived > 0 ? String(counts.archived) : undefined}
+              onPress={handleClearArchive}
+            />
+            <ListRow
+              symbol="trash"
+              label="Delete All Data"
+              destructive
+              chevron={false}
+              onPress={handleDeleteAll}
+            />
+          </ListSection>
 
-        {/* ── Data ───────────────────────────────────────────────── */}
-        <Section title="Data" footer="Backups are plain JSON files saved to your device.">
-          <Row
-            icon="file-down"
-            label="Export data"
-            description={`${counts.total} item${counts.total === 1 ? '' : 's'}`}
-            onPress={handleExport}
-            loading={busy === 'export'}
-          />
-          <Divider />
-          <Row
-            icon="file-up"
-            label="Import data"
-            description="Merge a Tuck backup"
-            onPress={handleImport}
-            loading={busy === 'import'}
-          />
-          <Divider />
-          <Row
-            icon="archive"
-            label="Clear archive"
-            description={`${counts.archived} archived`}
-            onPress={handleClearArchive}
-          />
-          <Divider />
-          <Row
-            icon="trash-2"
-            label="Delete all data"
-            destructive
-            onPress={handleDeleteAll}
-          />
-        </Section>
+          <ListSection title="About">
+            <ListRow symbol="about" label="About Tuck" onPress={() => router.push('/about')} />
+            <ListRow symbol="help" label="Help" onPress={() => router.push('/help')} />
+            <ListRow symbol="privacy" label="Privacy" onPress={() => router.push('/privacy')} />
+            <ListRow label="Version" value={version} chevron={false} reserveSymbolSlot />
+          </ListSection>
 
-        {/* ── About ──────────────────────────────────────────────── */}
-        <Section title="About">
-          <Row icon="lock" label="Privacy" onPress={() => router.push('/privacy')} />
-          <Divider />
-          <Row icon="info" label="Version" value={version} />
-        </Section>
-
-        {/* Development-only helper, clearly labelled and never shipped. */}
-        {__DEV__ ? <DevTools /> : null}
-
-        <View style={styles.colophon}>
-          <Text variant="label" color="subtle" center>
-            Tuck keeps your things on your device.
-          </Text>
+          {__DEV__ ? <DevTools /> : null}
         </View>
+
+        <Text variant="footnote" color="subtle" center style={styles.colophon}>
+          Tuck keeps your things on your device.
+        </Text>
       </ScrollView>
 
       {/* ── Sheets ───────────────────────────────────────────────── */}
-      <Sheet visible={themeSheet} onClose={() => setThemeSheet(false)} title="Theme">
+      <Sheet visible={themeSheet} onClose={() => setThemeSheet(false)} title="Appearance">
         {THEME_OPTIONS.map((option) => (
           <OptionRow
             key={option.value}
             label={option.label}
             description={option.hint}
-            icon={option.icon}
+            symbol={option.symbol}
             selected={settings.themePreference === option.value}
             onPress={() => {
               void settings.set('themePreference', option.value);
@@ -391,21 +389,20 @@ export default function SettingsScreen() {
         visible={categorySheet}
         onClose={() => setCategorySheet(false)}
         title="Default category"
+        scrollable
       >
-        <ScrollView style={styles.sheetScroll}>
-          {categories.map((category) => (
-            <OptionRow
-              key={category.id}
-              label={category.name}
-              icon={category.icon}
-              selected={settings.defaultCategoryId === category.id}
-              onPress={() => {
-                void settings.set('defaultCategoryId', category.id);
-                setCategorySheet(false);
-              }}
-            />
-          ))}
-        </ScrollView>
+        {categories.map((category) => (
+          <OptionRow
+            key={category.id}
+            label={category.name}
+            icon={category.icon}
+            selected={settings.defaultCategoryId === category.id}
+            onPress={() => {
+              void settings.set('defaultCategoryId', category.id);
+              setCategorySheet(false);
+            }}
+          />
+        ))}
       </Sheet>
     </Screen>
   );
@@ -433,185 +430,29 @@ function DevTools() {
   }, [refreshItems, showSnackbar]);
 
   return (
-    <Section title="Development" footer="Only visible in development builds.">
-      <Row
-        icon="sparkles"
+    <ListSection title="Development" footer="Only visible in development builds.">
+      <ListRow
+        symbol="sparkles"
         label="Add sample data"
         description="Twelve realistic saved things"
         onPress={handleSeed}
         loading={seeding}
       />
-    </Section>
-  );
-}
-
-// ─── Layout primitives ─────────────────────────────────────────────────────
-
-function Section({
-  title,
-  footer,
-  children,
-}: {
-  title: string;
-  footer?: string;
-  children: ReactNode;
-}) {
-  const theme = useTheme();
-
-  return (
-    <View style={styles.section}>
-      <Text variant="overline" color="subtle" uppercase style={styles.sectionTitle}>
-        {title}
-      </Text>
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
-        ]}
-      >
-        {children}
-      </View>
-      {footer ? (
-        <Text variant="label" color="subtle" style={styles.sectionFooter}>
-          {footer}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-function Divider() {
-  const theme = useTheme();
-  return <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />;
-}
-
-function Row({
-  icon,
-  label,
-  value,
-  description,
-  onPress,
-  control,
-  destructive,
-  loading,
-}: {
-  icon: IconName;
-  label: string;
-  value?: string;
-  description?: string;
-  onPress?: () => void;
-  control?: ReactNode;
-  destructive?: boolean;
-  loading?: boolean;
-}) {
-  const theme = useTheme();
-  const color = destructive ? theme.colors.danger : theme.colors.text;
-
-  const body = (
-    <>
-      <Icon
-        name={icon}
-        size={19}
-        color={destructive ? theme.colors.danger : theme.colors.textMuted}
-        strokeWidth={2}
-      />
-      <View style={styles.rowBody}>
-        <Text variant="body" style={{ color }}>
-          {label}
-        </Text>
-        {description ? (
-          <Text variant="label" color="subtle">
-            {description}
-          </Text>
-        ) : null}
-      </View>
-
-      {value ? (
-        <Text variant="footnote" color="muted">
-          {value}
-        </Text>
-      ) : null}
-
-      {control}
-
-      {onPress && !control ? (
-        <Icon
-          name={loading ? 'loader' : 'chevron-right'}
-          size={17}
-          color={theme.colors.textSubtle}
-        />
-      ) : null}
-    </>
-  );
-
-  if (!onPress) {
-    return (
-      <View style={styles.row} accessible accessibilityLabel={`${label}${value ? `, ${value}` : ''}`}>
-        {body}
-      </View>
-    );
-  }
-
-  return (
-    <Pressable
-      onPress={onPress}
-      haptic="light"
-      pressScale={0.99}
-      disabled={loading}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityHint={description ?? value}
-      style={styles.row}
-    >
-      {body}
-    </Pressable>
+    </ListSection>
   );
 }
 
 const styles = StyleSheet.create({
   content: {
+    paddingHorizontal: 0,
+  },
+  groups: {
     paddingHorizontal: screenPadding,
-  },
-  afterHero: {
-    height: spacing.xl,
-  },
-  section: {
-    marginBottom: spacing.xxl,
-  },
-  sectionTitle: {
-    marginBottom: spacing.sm + 2,
-    marginLeft: spacing.xs,
-  },
-  sectionFooter: {
-    marginTop: spacing.sm,
-    marginLeft: spacing.xs,
-    lineHeight: 17,
-  },
-  card: {
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg - 2,
-    paddingVertical: spacing.md + 2,
-    minHeight: 54,
-  },
-  rowBody: {
-    flex: 1,
-    gap: 2,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: spacing.huge,
-  },
-  sheetScroll: {
-    maxHeight: 400,
+    paddingTop: spacing.sm,
   },
   colophon: {
-    paddingVertical: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl,
+    paddingHorizontal: screenPadding,
   },
 });

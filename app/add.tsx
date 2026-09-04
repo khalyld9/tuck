@@ -16,6 +16,7 @@ import { FormField } from '@/components/forms/FormField';
 import { ReminderPicker } from '@/components/forms/ReminderPicker';
 import { TagInput } from '@/components/forms/TagInput';
 import { Button } from '@/components/ui/Button';
+import { NavBar } from '@/components/ios/NavBar';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -168,26 +169,35 @@ export default function AddScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-          <View style={styles.headerText}>
-            <Text variant="title2" accessibilityRole="header">
-              {headerTitle}
-            </Text>
-            {isShared ? (
-              <Text variant="footnote" color="muted">
-                Shared from another app
+        {/*
+          A presented form gets Cancel and Save in the navigation bar, which
+          is where iOS users reach for them; the pinned button below repeats
+          Save as the primary affordance.
+        */}
+        <NavBar
+          title={headerTitle}
+          leading="none"
+          trailing={
+            <Pressable
+              onPress={handleClose}
+              pressScale={1}
+              pressOpacity={0.45}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Close without saving"
+            >
+              <Text variant="body" style={{ color: theme.colors.accent }}>
+                Cancel
               </Text>
-            ) : null}
-          </View>
-          <IconButton
-            name="x"
-            onPress={handleClose}
-            accessibilityLabel="Close without saving"
-            variant="soft"
-            size={19}
-          />
-        </View>
+            </Pressable>
+          }
+        />
+
+        {isShared ? (
+          <Text variant="footnote" color="muted" center style={styles.sharedNote}>
+            Shared from another app
+          </Text>
+        ) : null}
 
         <ScrollView
           contentContainerStyle={[styles.content, { paddingBottom: spacing.huge }]}
@@ -286,18 +296,9 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.md,
+  sharedNote: {
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.lg,
-  },
-  headerText: {
-    flex: 1,
-    gap: 2,
-    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
   },
   content: {
     paddingHorizontal: screenPadding,

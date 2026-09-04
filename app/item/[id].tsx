@@ -7,6 +7,8 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
+import { ListRow, ListSection } from '@/components/ios/List';
+import { NavBar } from '@/components/ios/NavBar';
 import { Chip } from '@/components/ui/Chip';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { Icon } from '@/components/ui/Icon';
@@ -123,36 +125,36 @@ export default function ItemDetailScreen() {
 
   return (
     <Screen>
-      {/* ── Top bar ─────────────────────────────────────────────── */}
-      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <IconButton
-          name="arrow-left"
-          onPress={handleBack}
-          accessibilityLabel="Go back"
-          variant="soft"
-          size={19}
-        />
-        <View style={styles.topActions}>
-          <FavoriteButton
-            active={item.isFavorite}
-            onToggle={() => void toggleFavorite(item)}
-          />
-          <IconButton
-            name="share-2"
-            onPress={() => void share(item)}
-            accessibilityLabel="Share this item"
-            variant="soft"
-            size={18}
-          />
-          <IconButton
-            name="pencil"
-            onPress={() => openEdit(item)}
-            accessibilityLabel="Edit this item"
-            variant="soft"
-            size={18}
-          />
-        </View>
-      </View>
+      {/* ── Navigation ──────────────────────────────────────────── */}
+      <NavBar
+        leading="back"
+        leadingLabel="Back"
+        onLeadingPress={handleBack}
+        trailing={
+          <View style={styles.topActions}>
+            <FavoriteButton
+              active={item.isFavorite}
+              onToggle={() => void toggleFavorite(item)}
+            />
+            <IconButton
+              name="share-2"
+              onPress={() => void share(item)}
+              accessibilityLabel="Share this item"
+              variant="plain"
+              color={theme.colors.accent}
+              size={19}
+            />
+            <IconButton
+              name="pencil"
+              onPress={() => openEdit(item)}
+              accessibilityLabel="Edit this item"
+              variant="plain"
+              color={theme.colors.accent}
+              size={19}
+            />
+          </View>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.huge }]}
@@ -221,12 +223,7 @@ export default function ItemDetailScreen() {
             <Text variant="overline" color="subtle" uppercase style={styles.blockLabel}>
               Notes
             </Text>
-            <View
-              style={[
-                styles.notes,
-                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
-              ]}
-            >
+            <View style={[styles.notes, { backgroundColor: theme.colors.surface }]}>
               <Text variant="body" style={styles.notesText}>
                 {item.notes}
               </Text>
@@ -318,76 +315,81 @@ export default function ItemDetailScreen() {
         ) : null}
 
         {/* ── Meta ──────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(300).delay(180)} style={styles.block}>
-          <View style={[styles.metaCard, { borderColor: theme.colors.border }]}>
-            <MetaRow label="Tucked" value={`${dates?.addedRelative} · ${dates?.added}`} />
-            {dates?.edited ? <MetaRow label="Updated" value={dates.edited} /> : null}
-            {item.isArchived ? <MetaRow label="Status" value="Archived" /> : null}
-          </View>
+        <Animated.View entering={FadeInDown.duration(300).delay(180)} style={styles.groups}>
+          <ListSection title="Details">
+            <ListRow
+              label="Tucked"
+              value={`${dates?.addedRelative}`}
+              chevron={false}
+              reserveSymbolSlot={false}
+            />
+            {dates?.edited ? (
+              <ListRow label="Updated" value={dates.edited} chevron={false} />
+            ) : null}
+            {item.isArchived ? (
+              <ListRow label="Status" value="Archived" chevron={false} />
+            ) : null}
+          </ListSection>
         </Animated.View>
 
-        {/* ── Destructive / lifecycle actions ───────────────────── */}
-        <Animated.View entering={FadeInDown.duration(300).delay(210)} style={styles.footerActions}>
-          <Button
-            label={item.isArchived ? 'Restore to library' : 'Archive'}
-            onPress={handleArchiveToggle}
-            variant="secondary"
-            icon={item.isArchived ? 'archive-restore' : 'archive'}
-            fullWidth
-          />
-          <Button
-            label="Delete"
-            onPress={handleDelete}
-            variant="danger"
-            icon="trash-2"
-            fullWidth
-          />
+        {/* ── Lifecycle actions ─────────────────────────────────── */}
+        {/*
+          Grouped rows rather than filled buttons: on iOS a destructive action
+          at the end of a detail screen is a red row in a list, not a coloured
+          pill. Delete keeps its own group so it can't be hit by accident.
+        */}
+        <Animated.View entering={FadeInDown.duration(300).delay(210)} style={styles.groups}>
+          <ListSection>
+            <ListRow
+              symbol={item.isArchived ? 'restore' : 'archive'}
+              label={item.isArchived ? 'Restore to Library' : 'Archive'}
+              onPress={handleArchiveToggle}
+              chevron={false}
+            />
+          </ListSection>
+
+          <ListSection>
+            <ListRow
+              symbol="trash"
+              label="Delete"
+              onPress={handleDelete}
+              destructive
+              chevron={false}
+            />
+          </ListSection>
         </Animated.View>
       </ScrollView>
     </Screen>
   );
 }
 
-function MetaRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.metaRow}>
-      <Text variant="footnote" color="subtle">
-        {label}
-      </Text>
-      <Text variant="footnote" color="muted" style={styles.metaValue} numberOfLines={1}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: screenPadding - spacing.sm,
-    paddingBottom: spacing.sm,
-  },
   topActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
   },
   content: {
-    paddingHorizontal: screenPadding,
+    // Blocks pad themselves; the grouped sections at the foot need to run
+    // to the standard inset, so the container stays flush.
+    paddingTop: spacing.sm,
   },
   heroWrap: {
     marginBottom: spacing.xl,
+    paddingHorizontal: screenPadding,
   },
   hero: {
     width: '100%',
     aspectRatio: 16 / 10,
     borderRadius: radius.lg,
   },
+  groups: {
+    paddingHorizontal: screenPadding,
+  },
   titleBlock: {
     gap: spacing.md,
     marginBottom: spacing.xl,
+    paddingHorizontal: screenPadding,
   },
   categoryChip: {
     alignSelf: 'flex-start',
@@ -407,14 +409,14 @@ const styles = StyleSheet.create({
   },
   block: {
     marginBottom: spacing.xl,
+    paddingHorizontal: screenPadding,
   },
   blockLabel: {
     marginBottom: spacing.sm,
   },
   notes: {
     padding: spacing.lg - 2,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.sm,
   },
   notesText: {
     lineHeight: 23,
@@ -435,26 +437,6 @@ const styles = StyleSheet.create({
   reminderBody: {
     flex: 1,
     gap: 2,
-  },
-  metaCard: {
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.lg - 2,
-    paddingVertical: spacing.xs,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.lg,
-    paddingVertical: spacing.md - 2,
-  },
-  metaValue: {
-    flexShrink: 1,
-  },
-  footerActions: {
-    gap: spacing.sm + 2,
-    marginTop: spacing.sm,
   },
   missing: {
     flex: 1,

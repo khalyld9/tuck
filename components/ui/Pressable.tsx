@@ -7,6 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Animated, {
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -26,6 +27,12 @@ export interface PressableProps extends Omit<RNPressableProps, 'style'> {
   pressScale?: number;
   /** Opacity while held. */
   pressOpacity?: number;
+  /**
+   * Fill painted across the element while held. This is how iOS list rows
+   * highlight — the whole row tints rather than shrinking — so grouped rows
+   * pass this and set `pressScale` to 1.
+   */
+  pressedBackgroundColor?: string;
   /** Haptic fired on press-in. `null` disables. */
   haptic?: 'selection' | 'light' | 'medium' | null;
 }
@@ -39,6 +46,7 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
     style,
     pressScale = 0.97,
     pressOpacity = 1,
+    pressedBackgroundColor,
     haptic = 'light',
     onPress,
     onPressIn,
@@ -50,6 +58,7 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
 ) {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+  const highlight = useSharedValue(0);
   const reducedMotion = useReducedMotion();
   // Null everywhere except inside a swipeable row.
   const swipeGate = useSwipeGate();
@@ -73,6 +82,11 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
         if (pressOpacity !== 1) {
           opacity.value = withTiming(pressOpacity, { duration: motion.instant });
         }
+        if (pressedBackgroundColor) {
+          // Instant on, eased off — matching the way a UITableViewCell
+          // snaps to its selected fill and then fades back.
+          highlight.value = withTiming(1, { duration: motion.instant });
+        }
         // Skip the tick too — a press-in that will be swallowed shouldn't
         // buzz, or a swipe would fire two haptics.
         if (haptic && !swipeGate?.isBlocked()) haptics[haptic]();
@@ -86,6 +100,8 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
       opacity,
       pressOpacity,
       pressScale,
+      pressedBackgroundColor,
+      highlight,
       reducedMotion,
       scale,
       swipeGate,
@@ -96,14 +112,26 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
     (event) => {
       scale.value = withSpring(1, motion.press);
       opacity.value = withTiming(1, { duration: motion.fast });
+      highlight.value = withTiming(0, { duration: motion.fast });
       onPressOut?.(event);
     },
-    [onPressOut, opacity, scale]
+    [highlight, onPressOut, opacity, scale]
   );
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
+    // Interpolated rather than toggled: a boolean swap leaves the fill
+    // painted if press-out is swallowed (a tap that navigates, say).
+    ...(pressedBackgroundColor
+      ? {
+          backgroundColor: interpolateColor(
+            highlight.value,
+            [0, 1],
+            ['transparent', pressedBackgroundColor]
+          ),
+        }
+      : null),
   }));
 
   return (

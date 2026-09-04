@@ -1,7 +1,11 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/ui/Chip';
@@ -14,7 +18,11 @@ import { Text } from '@/components/ui/Text';
 import { elevation, radius, screenPadding, spacing } from '@/constants/tokens';
 import { tagsRepo } from '@/db/repositories';
 import type { CategoryTone } from '@/constants/theme';
-import { HeroHeader } from '@/components/ui/HeroHeader';
+import {
+  CompactNavBar,
+  LargeTitleHeader,
+  useLargeTitleTopInset,
+} from '@/components/ios/LargeTitleHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { useCategoriesStore } from '@/store/useCategoriesStore';
 import { selectCounts, selectRevision, useItemsStore } from '@/store/useItemsStore';
@@ -31,6 +39,12 @@ export default function BrowseScreen() {
   const counts = useItemsStore(selectCounts);
   const revision = useItemsStore(selectRevision);
   const refreshCategories = useCategoriesStore((state) => state.refresh);
+  const topInset = useLargeTitleTopInset();
+
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
 
   const [tags, setTags] = useState<TagWithCount[]>([]);
 
@@ -53,41 +67,42 @@ export default function BrowseScreen() {
 
   return (
     <Screen>
+      <CompactNavBar title="Browse" scrollY={scrollY} />
+
       <ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={[
           styles.content,
           {
-            // The hero panel absorbs the top inset itself.
+            paddingTop: topInset,
             paddingBottom: tabBarClearanceFor(insets.bottom),
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* The two collection tiles ride the bottom edge of the panel. */}
-        <HeroHeader
+        <LargeTitleHeader
           title="Browse"
           subtitle="Everything, sorted into pockets"
-          overlap={
-            <Animated.View entering={FadeInDown.duration(280)} style={styles.collections}>
-            <CollectionTile
-              icon="heart"
-              label="Favourites"
-              count={counts.favorites}
-              tone={theme.tones.rose}
-              onPress={() => router.push('/favorites')}
-            />
-            <CollectionTile
-              icon="archive"
-              label="Archive"
-              count={counts.archived}
-              tone={theme.tones.neutral}
-              onPress={() => router.push('/archive')}
-            />
-            </Animated.View>
-          }
+          scrollY={scrollY}
         />
 
-        <View style={styles.afterHero} />
+        <Animated.View entering={FadeInDown.duration(280)} style={styles.collections}>
+          <CollectionTile
+            icon="heart"
+            label="Favourites"
+            count={counts.favorites}
+            tone={theme.tones.rose}
+            onPress={() => router.push('/favorites')}
+          />
+          <CollectionTile
+            icon="archive"
+            label="Archive"
+            count={counts.archived}
+            tone={theme.tones.neutral}
+            onPress={() => router.push('/archive')}
+          />
+        </Animated.View>
 
         {/* ── Categories ──────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.duration(280).delay(60)} style={styles.section}>
@@ -249,10 +264,7 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.massive,
   },
-  /** Space between the overlapping collection tiles and the first section. */
-  afterHero: {
-    height: spacing.xxl,
-  },
+
   section: {
     marginBottom: spacing.xxl,
   },
@@ -263,6 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     paddingHorizontal: screenPadding,
+    paddingBottom: spacing.xxl,
   },
   tile: {
     flex: 1,

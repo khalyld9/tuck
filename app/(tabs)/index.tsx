@@ -1,7 +1,12 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { StyleSheet, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemCard } from '@/components/cards/ItemCard';
@@ -12,10 +17,15 @@ import { SummaryStrip } from '@/components/home/SummaryStrip';
 import { UpcomingCard } from '@/components/home/UpcomingCard';
 import { Mascot } from '@/components/mascot/Mascot';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { InsetGroup, thumbSeparatorInset } from '@/components/ios/InsetGroup';
 import { tabBarClearanceFor } from '@/components/navigation/metrics';
 import { Icon } from '@/components/ui/Icon';
 import { Pressable } from '@/components/ui/Pressable';
-import { HeroHeader } from '@/components/ui/HeroHeader';
+import {
+  CompactNavBar,
+  LargeTitleHeader,
+  useLargeTitleTopInset,
+} from '@/components/ios/LargeTitleHeader';
 import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -33,6 +43,8 @@ import { selectHasOnboarded, useSettingsStore } from '@/store/useSettingsStore';
 import { useItemQuery } from '@/hooks/useItemQuery';
 import type { SavedItem } from '@/types/models';
 
+const ScrollView = Animated.ScrollView;
+
 /**
  * Home — a personal overview, not a dashboard.
  *
@@ -47,6 +59,12 @@ export default function HomeScreen() {
   const categories = useCategoriesStore((state) => state.categories);
   const hasOnboarded = useSettingsStore(selectHasOnboarded);
   const { openDetail } = useItemActions();
+  const topInset = useLargeTitleTopInset();
+
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
 
   // Send first-time users to onboarding before they see an empty library.
   useFocusEffect(
@@ -88,11 +106,15 @@ export default function HomeScreen() {
 
   return (
     <Screen>
+      <CompactNavBar title="Tuck" scrollY={scrollY} />
+
       <ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={[
           styles.content,
           {
-            // The hero panel absorbs the top inset itself.
+            paddingTop: topInset,
             paddingBottom: tabBarClearanceFor(insets.bottom),
           },
         ]}
@@ -101,48 +123,47 @@ export default function HomeScreen() {
       >
         {/* ── Masthead ─────────────────────────────────────────────── */}
         {/*
-          The deep panel carries the wordmark, the greeting and whatever Tuck
-          has noticed; the search field hangs off its bottom edge so the first
-          thing you touch is lifted clear of the colour.
+          An iOS large title, not a coloured panel: "Tuck" is the navigation
+          title and the greeting sits beneath it as a subtitle. The mascot is
+          a trailing accessory rather than a graphic inside a slab.
         */}
-        <HeroHeader
-          eyebrow="Tuck"
-          title={`${greeting()}!`}
-          subtitle="What are you tucking away today?"
-          accessory={
+        <LargeTitleHeader
+          title="Tuck"
+          subtitle={`${greeting()} — what are you tucking away today?`}
+          scrollY={scrollY}
+          actions={
             note ? null : (
               <Mascot
                 pose="idle"
-                size={64}
+                size={54}
                 animate
                 idle
                 accessibilityLabel="Tuck, your saving companion"
               />
             )
           }
-          overlap={
-            <Animated.View entering={FadeInDown.duration(300).delay(60)}>
-              <SearchField
-                value=""
-                onChangeText={() => undefined}
-                readOnlyPressTarget={() => router.push('/search')}
-                placeholder="Search your tucked things…"
-                elevated
-              />
-            </Animated.View>
-          }
-        >
-          {/* What Tuck noticed, sitting on the panel itself. */}
-          {note ? (
+        />
+
+        <View style={styles.searchWrap}>
+          <Animated.View entering={FadeInDown.duration(300).delay(60)}>
+            <SearchField
+              value=""
+              onChangeText={() => undefined}
+              readOnlyPressTarget={() => router.push('/search')}
+              placeholder="Search your tucked things…"
+            />
+          </Animated.View>
+        </View>
+
+        {/* What Tuck noticed. */}
+        {note ? (
+          <View style={styles.noteWrap}>
             <MascotNoteCard
               note={note}
-              onHero
               onPress={note.href ? () => router.push(note.href as '/saved') : undefined}
             />
-          ) : null}
-        </HeroHeader>
-
-        <View style={styles.afterHero} />
+          </View>
+        ) : null}
 
         {/* ── The library at a glance ──────────────────────────────── */}
         {isEmpty ? null : (
@@ -186,11 +207,11 @@ export default function HomeScreen() {
                   onAction={() => router.push('/saved')}
                   style={styles.sectionHeader}
                 />
-                <View style={styles.stack}>
+                <InsetGroup separatorInset={thumbSeparatorInset}>
                   {recent.map((item) => (
-                    <ItemCard key={item.id} item={item} onPress={handleOpen} />
+                    <ItemCard key={item.id} item={item} onPress={handleOpen} inset />
                   ))}
-                </View>
+                </InsetGroup>
               </Animated.View>
             ) : null}
 
@@ -201,11 +222,11 @@ export default function HomeScreen() {
                 style={styles.section}
               >
                 <SectionHeader title="Coming up" style={styles.sectionHeader} />
-                <View style={styles.stack}>
+                <InsetGroup separatorInset={spacing.lg + 38 + spacing.md}>
                   {upcoming.map((item) => (
-                    <UpcomingCard key={item.id} item={item} onPress={handleOpen} />
+                    <UpcomingCard key={item.id} item={item} onPress={handleOpen} inset />
                   ))}
-                </View>
+                </InsetGroup>
               </Animated.View>
             ) : null}
 
@@ -321,9 +342,13 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.huge,
   },
-  /** Space between the overlapping search field and the first section. */
-  afterHero: {
-    height: spacing.xxl,
+  searchWrap: {
+    paddingHorizontal: screenPadding,
+    paddingBottom: spacing.xl,
+  },
+  noteWrap: {
+    paddingHorizontal: screenPadding,
+    paddingBottom: spacing.xl,
   },
   summaryWrap: {
     marginBottom: spacing.xxl,

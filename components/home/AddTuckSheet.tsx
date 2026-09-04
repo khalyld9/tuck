@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/Icon';
+import { Symbol } from '@/components/ui/Symbol';
 import { Pressable } from '@/components/ui/Pressable';
 import { Sheet } from '@/components/ui/Sheet';
 import { Text } from '@/components/ui/Text';
@@ -87,7 +88,7 @@ export const AddTuckSheet = memo(function AddTuckSheet({
                 ) : null}
               </View>
 
-              <Icon name="chevron-right" size={17} color={theme.colors.textSubtle} />
+              <Symbol name="chevronRight" size={14} weight="semibold" color={theme.colors.textSubtle} />
             </Pressable>
           );
         })}
@@ -104,7 +105,7 @@ export const AddTuckSheet = memo(function AddTuckSheet({
           style={styles.row}
         >
           <View style={[styles.icon, { backgroundColor: theme.colors.accentSoft }]}>
-            <Icon name="plus" size={19} color={theme.colors.accent} strokeWidth={2.2} />
+            <Symbol name="plus" size={19} weight="medium" color={theme.colors.accent} />
           </View>
 
           <View style={styles.rowText}>
@@ -114,7 +115,7 @@ export const AddTuckSheet = memo(function AddTuckSheet({
             </Text>
           </View>
 
-          <Icon name="chevron-right" size={17} color={theme.colors.textSubtle} />
+          <Symbol name="chevronRight" size={14} weight="semibold" color={theme.colors.textSubtle} />
         </Pressable>
       </View>
     </Sheet>

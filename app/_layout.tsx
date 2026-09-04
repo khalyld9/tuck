@@ -92,6 +92,10 @@ function RootNavigator() {
           options={{ animation: 'fade', gestureEnabled: false }}
         />
         <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
+        {/* Pushed, not presented: these are destinations within Settings, so
+            they slide in from the right and offer a Back button. */}
+        <Stack.Screen name="about" />
+        <Stack.Screen name="help" />
       </Stack>
 
       <Snackbar />

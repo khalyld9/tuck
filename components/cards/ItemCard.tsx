@@ -17,6 +17,12 @@ export interface ItemCardProps {
   item: SavedItem;
   onPress: (item: SavedItem) => void;
   onLongPress?: (item: SavedItem) => void;
+  /**
+   * Renders as a row inside an `InsetGroup` — no fill, no radius, no shadow,
+   * because the group draws the surface. This is the iOS grouped-list form;
+   * the standalone card form is kept for contexts with no group around it.
+   */
+  inset?: boolean;
 }
 
 /**
@@ -27,7 +33,7 @@ export interface ItemCardProps {
  * never make one card taller than its neighbours.
  */
 export const ItemCard = memo(
-  function ItemCard({ item, onPress, onLongPress }: ItemCardProps) {
+  function ItemCard({ item, onPress, onLongPress, inset }: ItemCardProps) {
     const theme = useTheme();
     const category = useCategoriesStore((state) => state.byId[item.categoryId]);
     const tone = theme.tones[category?.tone ?? 'neutral'];
@@ -43,7 +49,7 @@ export const ItemCard = memo(
       <Pressable
         onPress={handlePress}
         onLongPress={onLongPress ? handleLongPress : undefined}
-        pressScale={0.985}
+        pressScale={inset ? 1 : 0.985}
         haptic="light"
         accessibilityRole="button"
         accessibilityLabel={item.title}
@@ -52,17 +58,22 @@ export const ItemCard = memo(
         }. Tucked ${relativeTime(item.createdAt)}.${overdue ? ' Reminder overdue.' : ''}${
           item.isFavorite ? ' Favourite.' : ''
         }`}
-        style={[
-          styles.card,
-          // Depth instead of a hairline: the reference's cards are separated
-          // from the page by light, not by a drawn edge. The border is kept
-          // only in dark mode, where a shadow on near-black is invisible.
-          elevation(1, theme.colors.shadow, theme.dark),
-          {
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.dark ? theme.colors.border : 'transparent',
-          },
-        ]}
+        pressedBackgroundColor={inset ? theme.colors.surfacePressed : undefined}
+        style={
+          inset
+            ? styles.row
+            : [
+                styles.card,
+                // Depth instead of a hairline: cards are separated from the
+                // page by light, not by a drawn edge. The border is kept only
+                // in dark mode, where a shadow on near-black is invisible.
+                elevation(1, theme.colors.shadow, theme.dark),
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.dark ? theme.colors.border : 'transparent',
+                },
+              ]
+        }
       >
         {/* Thumbnail — the saved image if there is one, otherwise the
             category glyph on a soft tonal tile. Same size either way. */}
@@ -143,10 +154,20 @@ export const ItemCard = memo(
     prev.item.isArchived === next.item.isArchived &&
     prev.item.reminderAt === next.item.reminderAt &&
     prev.item.createdAt === next.item.createdAt &&
+    prev.inset === next.inset &&
     prev.onPress === next.onPress
 );
 
 const styles = StyleSheet.create({
+  /** Grouped-list form: the InsetGroup owns the surface and the separators. */
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md + 2,
+    height: cardMetrics.listHeight,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
