@@ -13,6 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useSwipeGate } from '@/components/cards/swipeGate';
 import { motion } from '@/constants/tokens';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { haptics } from '@/lib/haptics';
@@ -39,6 +40,7 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
     pressScale = 0.97,
     pressOpacity = 1,
     haptic = 'light',
+    onPress,
     onPressIn,
     onPressOut,
     disabled,
@@ -49,6 +51,18 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const reducedMotion = useReducedMotion();
+  // Null everywhere except inside a swipeable row.
+  const swipeGate = useSwipeGate();
+
+  // Swiping a row must not also open it. The gate stays shut for the length
+  // of the drag plus a short beat after release.
+  const handlePress = useCallback<NonNullable<RNPressableProps['onPress']>>(
+    (event) => {
+      if (swipeGate?.isBlocked()) return;
+      onPress?.(event);
+    },
+    [onPress, swipeGate]
+  );
 
   const handlePressIn = useCallback<NonNullable<RNPressableProps['onPressIn']>>(
     (event) => {
@@ -59,11 +73,23 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
         if (pressOpacity !== 1) {
           opacity.value = withTiming(pressOpacity, { duration: motion.instant });
         }
-        if (haptic) haptics[haptic]();
+        // Skip the tick too — a press-in that will be swallowed shouldn't
+        // buzz, or a swipe would fire two haptics.
+        if (haptic && !swipeGate?.isBlocked()) haptics[haptic]();
       }
       onPressIn?.(event);
     },
-    [disabled, haptic, onPressIn, opacity, pressOpacity, pressScale, reducedMotion, scale]
+    [
+      disabled,
+      haptic,
+      onPressIn,
+      opacity,
+      pressOpacity,
+      pressScale,
+      reducedMotion,
+      scale,
+      swipeGate,
+    ]
   );
 
   const handlePressOut = useCallback<NonNullable<RNPressableProps['onPressOut']>>(
@@ -85,6 +111,7 @@ export const Pressable = forwardRef<View, PressableProps>(function Pressable(
       ref={ref}
       accessibilityRole={rest.accessibilityRole ?? 'button'}
       disabled={disabled}
+      onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[style, animatedStyle, disabled && { opacity: 0.45 }]}

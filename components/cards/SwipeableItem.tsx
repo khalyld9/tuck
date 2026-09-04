@@ -19,6 +19,8 @@ import { haptics } from '@/lib/haptics';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
 
+import { SwipeGateProvider, useSwipeGate } from './swipeGate';
+
 /** Distance the row must travel before an action commits. */
 const COMMIT_THRESHOLD = 96;
 /** Cap so the row can't be dragged off-screen. */
@@ -44,7 +46,16 @@ export interface SwipeableItemProps {
  * direction is destructive — archive is reversible and favourite is a toggle.
  * Permanent deletion is never wired to a swipe.
  */
-export const SwipeableItem = memo(function SwipeableItem({
+export const SwipeableItem = memo(function SwipeableItem(props: SwipeableItemProps) {
+  // The provider must sit above the row so the card's Pressable can read it.
+  return (
+    <SwipeGateProvider>
+      <SwipeableRow {...props} />
+    </SwipeGateProvider>
+  );
+});
+
+function SwipeableRow({
   children,
   onFavorite,
   onArchive,
@@ -55,6 +66,7 @@ export const SwipeableItem = memo(function SwipeableItem({
 }: SwipeableItemProps) {
   const theme = useTheme();
   const reducedMotion = useReducedMotion();
+  const gate = useSwipeGate();
 
   const translateX = useSharedValue(0);
   const hasPassedThreshold = useSharedValue(false);
@@ -64,12 +76,19 @@ export const SwipeableItem = memo(function SwipeableItem({
   const runFavorite = useCallback(() => onFavorite?.(), [onFavorite]);
   const runArchive = useCallback(() => onArchive?.(), [onArchive]);
 
+  // Shut the gate the moment the pan takes over, reopen it after release.
+  const openGate = useCallback(() => gate?.setSwiping(false), [gate]);
+  const closeGate = useCallback(() => gate?.setSwiping(true), [gate]);
+
   const pan = Gesture.Pan()
     .enabled(enabled && (Boolean(onFavorite) || Boolean(onArchive)))
     // Only claim the gesture once it's clearly horizontal, so vertical
     // scrolling in the list always wins.
     .activeOffsetX([-14, 14])
     .failOffsetY([-12, 12])
+    .onStart(() => {
+      runOnJS(closeGate)();
+    })
     .onUpdate((event) => {
       const raw = event.translationX;
       const allowed =
@@ -98,6 +117,11 @@ export const SwipeableItem = memo(function SwipeableItem({
 
       hasPassedThreshold.value = false;
       translateX.value = withSpring(0, motion.sheet);
+    })
+    // Fires whether the gesture succeeded, failed or was cancelled, so the
+    // gate can never be left shut.
+    .onFinalize(() => {
+      runOnJS(openGate)();
     });
 
   const rowStyle = useAnimatedStyle(() => ({
@@ -130,7 +154,7 @@ export const SwipeableItem = memo(function SwipeableItem({
       </GestureDetector>
     </View>
   );
-});
+}
 
 interface ActionBackdropProps {
   translateX: SharedValue<number>;
