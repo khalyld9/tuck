@@ -8,6 +8,11 @@ import { radius, screenPadding, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 
 export interface HeroHeaderProps {
+  /**
+   * A small label above the title. Home uses it for the wordmark so the
+   * greeting can take the large-title slot without losing the brand.
+   */
+  eyebrow?: string;
   title: string;
   subtitle?: string;
   /** Rendered at the top-right of the panel — mascot, action buttons. */
@@ -53,6 +58,7 @@ export interface HeroHeaderProps {
  * colour runs under the Dynamic Island instead of stopping short of it.
  */
 export const HeroHeader = memo(function HeroHeader({
+  eyebrow,
   title,
   subtitle,
   accessory,
@@ -87,6 +93,15 @@ export const HeroHeader = memo(function HeroHeader({
 
         <Animated.View entering={FadeIn.duration(320)} style={styles.row}>
           <View style={styles.titleBlock}>
+            {eyebrow ? (
+              <Text
+                variant="overline"
+                uppercase
+                style={[styles.eyebrow, { color: theme.colors.heroTextMuted }]}
+              >
+                {eyebrow}
+              </Text>
+            ) : null}
             <Text
               variant="title1"
               accessibilityRole="header"
@@ -150,6 +165,9 @@ const styles = StyleSheet.create({
   titleBlock: {
     flex: 1,
     gap: spacing.xxs,
+  },
+  eyebrow: {
+    marginBottom: spacing.xxs,
   },
   accessory: {
     alignItems: 'flex-end',

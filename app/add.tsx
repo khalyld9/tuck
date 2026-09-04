@@ -45,6 +45,8 @@ export default function AddScreen() {
     sharedUrl?: string;
     sharedTitle?: string;
     shared?: string;
+    /** Preselects a category — used by the "Tuck something" sheet. */
+    categoryId?: string;
   }>();
 
   const defaultCategoryId = useSettingsStore(selectDefaultCategoryId);
@@ -65,7 +67,7 @@ export default function AddScreen() {
   // A URL guesses at a category, but only until the user picks one themselves.
   const [categoryTouched, setCategoryTouched] = useState(false);
   const [categoryId, setCategoryId] = useState(
-    () => guessCategoryFromUrl(params.sharedUrl) ?? defaultCategoryId
+    () => params.categoryId ?? guessCategoryFromUrl(params.sharedUrl) ?? defaultCategoryId
   );
 
   const isShared = params.shared === '1';

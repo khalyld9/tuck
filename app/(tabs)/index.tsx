@@ -6,7 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemCard } from '@/components/cards/ItemCard';
 import { CategoryRail } from '@/components/categories/CategoryRail';
+import { AddTuckSheet } from '@/components/home/AddTuckSheet';
 import { MascotNoteCard, pickNote } from '@/components/home/MascotNote';
+import { SummaryStrip } from '@/components/home/SummaryStrip';
 import { UpcomingCard } from '@/components/home/UpcomingCard';
 import { Mascot } from '@/components/mascot/Mascot';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -70,6 +72,17 @@ export default function HomeScreen() {
     router.push('/surprise');
   }, []);
 
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
+
+  const handlePickCategory = useCallback((categoryId: string | null) => {
+    setAddSheetOpen(false);
+    // Let the sheet finish dismissing before the form slides up, otherwise
+    // the two transitions fight each other.
+    setTimeout(() => {
+      router.push(categoryId ? `/add?categoryId=${categoryId}` : '/add');
+    }, 180);
+  }, []);
+
   const isEmpty = counts.total === 0;
 
   return (
@@ -92,8 +105,9 @@ export default function HomeScreen() {
           thing you touch is lifted clear of the colour.
         */}
         <HeroHeader
-          title="Tuck"
-          subtitle={`${greeting()}. Keep it for later.`}
+          eyebrow="Tuck"
+          title={`${greeting()}!`}
+          subtitle="What are you tucking away today?"
           accessory={
             note ? null : (
               <Mascot
@@ -128,6 +142,22 @@ export default function HomeScreen() {
         </HeroHeader>
 
         <View style={styles.afterHero} />
+
+        {/* ── The library at a glance ──────────────────────────────── */}
+        {isEmpty ? null : (
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(80)}
+            style={styles.summaryWrap}
+          >
+            <SummaryStrip
+              total={counts.active}
+              addedThisWeek={pulse?.savedThisWeek ?? 0}
+              categories={categories}
+              onPressTotal={() => router.push('/saved')}
+              onPressCategory={(id) => router.push(`/category/${id}`)}
+            />
+          </Animated.View>
+        )}
 
         {isEmpty ? (
           <Animated.View entering={FadeIn.duration(360).delay(120)} style={styles.emptyWrap}>
@@ -226,7 +256,14 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      <AddButton />
+      <AddButton onPress={() => setAddSheetOpen(true)} />
+
+      <AddTuckSheet
+        visible={addSheetOpen}
+        onClose={() => setAddSheetOpen(false)}
+        categories={categories}
+        onPick={handlePickCategory}
+      />
     </Screen>
   );
 }
@@ -280,8 +317,13 @@ function usePulse(revision: number): LibraryPulse | null {
   return pulse;
 }
 
-/** Floating quick-add button, present on Home and Saved. */
-export function AddButton() {
+/**
+ * Floating quick-add button, present on Home and Saved.
+ *
+ * `onPress` lets Home open the "Tuck something" sheet instead; without it the
+ * button goes straight to the blank form, which is what Saved wants.
+ */
+export function AddButton({ onPress }: { onPress?: () => void }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -296,12 +338,14 @@ export function AddButton() {
       pointerEvents="box-none"
     >
       <Pressable
-        onPress={() => router.push('/add')}
+        onPress={onPress ?? (() => router.push('/add'))}
         haptic="medium"
         pressScale={0.92}
         accessibilityRole="button"
         accessibilityLabel="Tuck something away"
-        accessibilityHint="Opens the form to save a new item"
+        accessibilityHint={
+          onPress ? 'Opens a list of things you can save' : 'Opens the form to save a new item'
+        }
         style={[styles.fab, { backgroundColor: theme.colors.accent, shadowColor: theme.colors.shadow }]}
       >
         <Icon name="plus" size={25} color={theme.colors.textOnAccent} strokeWidth={2.5} />
@@ -317,6 +361,9 @@ const styles = StyleSheet.create({
   /** Space between the overlapping search field and the first section. */
   afterHero: {
     height: spacing.xxl,
+  },
+  summaryWrap: {
+    marginBottom: spacing.xxl,
   },
   emptyWrap: {
     paddingTop: spacing.lg,
