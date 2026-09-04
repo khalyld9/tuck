@@ -43,6 +43,16 @@ export const palette = {
   chalk: '#E8E0D6',
   chalkBright: '#F6F1EA',
 
+  /**
+   * Hero browns. The reference's marketing frames put a deep saturated panel
+   * behind the masthead and float cards over its lower edge; these are the
+   * brown equivalents. `cacao` is deep enough to carry cream text far past AA
+   * while staying unmistakably warm rather than black.
+   */
+  cacao: '#4A3226',
+  cacaoDeep: '#3A271D',
+  cacaoTint: '#5E4234',
+
   // ── Clay accent (brand) ──────────────────────────────────────────────────
   /**
    * `clay` is the brand fill — buttons, the FAB, the active tab. It is the

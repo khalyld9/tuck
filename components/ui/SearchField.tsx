@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { motion, noWebOutline, radius, spacing, typography } from '@/constants/tokens';
+import { elevation, motion, noWebOutline, radius, spacing, typography } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { haptics } from '@/lib/haptics';
 
@@ -28,6 +28,11 @@ export interface SearchFieldProps {
   style?: StyleProp<ViewStyle>;
   /** Renders as a non-editable button that navigates elsewhere on tap. */
   readOnlyPressTarget?: () => void;
+  /**
+   * Lifts the field with a shadow and drops the border. Used when it floats
+   * over the hero panel, where a hairline border reads as grime.
+   */
+  elevated?: boolean;
 }
 
 /**
@@ -36,7 +41,16 @@ export interface SearchFieldProps {
  */
 export const SearchField = memo(
   forwardRef<TextInput, SearchFieldProps>(function SearchField(
-    { value, onChangeText, placeholder = 'Search your tucked things…', onSubmit, autoFocus, style, readOnlyPressTarget },
+    {
+      value,
+      onChangeText,
+      placeholder = 'Search your tucked things…',
+      onSubmit,
+      autoFocus,
+      style,
+      readOnlyPressTarget,
+      elevated,
+    },
     ref
   ) {
     const theme = useTheme();
@@ -116,7 +130,15 @@ export const SearchField = memo(
           pressScale={0.985}
           accessibilityRole="search"
           accessibilityLabel={placeholder}
-          style={[styles.container, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, style]}
+          style={[
+            styles.container,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: elevated ? 'transparent' : theme.colors.border,
+            },
+            elevated && elevation(2, theme.colors.shadow, theme.dark),
+            style,
+          ]}
         >
           {body}
         </Pressable>

@@ -12,6 +12,7 @@ import { Mascot } from '@/components/mascot/Mascot';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Pressable } from '@/components/ui/Pressable';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -77,7 +78,7 @@ export default function HomeScreen() {
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: insets.top + spacing.md,
+            // The hero panel absorbs the top inset itself.
             paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
           },
         ]}
@@ -85,47 +86,48 @@ export default function HomeScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* ── Masthead ─────────────────────────────────────────────── */}
-        <Animated.View entering={FadeIn.duration(320)} style={styles.header}>
-          <View style={styles.headerText}>
-            <Text variant="display" accessibilityRole="header">
-              Tuck
-            </Text>
-            <Text variant="callout" color="muted">
-              {greeting()}. Keep it for later.
-            </Text>
-          </View>
-
-          {/* Tuck only appears up here when there's nothing to say below. */}
-          {note ? null : (
-            <Mascot
-              pose="idle"
-              size={64}
-              animate
-              idle
-              accessibilityLabel="Tuck, your saving companion"
-            />
-          )}
-        </Animated.View>
-
-        {/* ── What Tuck noticed ────────────────────────────────────── */}
-        {note ? (
-          <View style={styles.noteWrap}>
+        {/*
+          The deep panel carries the wordmark, the greeting and whatever Tuck
+          has noticed; the search field hangs off its bottom edge so the first
+          thing you touch is lifted clear of the colour.
+        */}
+        <HeroHeader
+          title="Tuck"
+          subtitle={`${greeting()}. Keep it for later.`}
+          accessory={
+            note ? null : (
+              <Mascot
+                pose="idle"
+                size={64}
+                animate
+                idle
+                accessibilityLabel="Tuck, your saving companion"
+              />
+            )
+          }
+          overlap={
+            <Animated.View entering={FadeInDown.duration(300).delay(60)}>
+              <SearchField
+                value=""
+                onChangeText={() => undefined}
+                readOnlyPressTarget={() => router.push('/search')}
+                placeholder="Search your tucked things…"
+                elevated
+              />
+            </Animated.View>
+          }
+        >
+          {/* What Tuck noticed, sitting on the panel itself. */}
+          {note ? (
             <MascotNoteCard
               note={note}
+              onHero
               onPress={note.href ? () => router.push(note.href as '/saved') : undefined}
             />
-          </View>
-        ) : null}
+          ) : null}
+        </HeroHeader>
 
-        {/* ── Search ───────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(300).delay(60)} style={styles.searchWrap}>
-          <SearchField
-            value=""
-            onChangeText={() => undefined}
-            readOnlyPressTarget={() => router.push('/search')}
-            placeholder="Search your tucked things…"
-          />
-        </Animated.View>
+        <View style={styles.afterHero} />
 
         {isEmpty ? (
           <Animated.View entering={FadeIn.duration(360).delay(120)} style={styles.emptyWrap}>
@@ -312,25 +314,9 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.huge,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: screenPadding,
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  headerText: {
-    flex: 1,
-    gap: 2,
-  },
-  noteWrap: {
-    paddingHorizontal: screenPadding,
-    marginBottom: spacing.xl,
-  },
-  searchWrap: {
-    paddingHorizontal: screenPadding,
-    marginBottom: spacing.xxl,
+  /** Space between the overlapping search field and the first section. */
+  afterHero: {
+    height: spacing.xxl,
   },
   emptyWrap: {
     paddingTop: spacing.lg,

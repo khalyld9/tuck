@@ -10,9 +10,10 @@ import { Pressable } from '@/components/ui/Pressable';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
+import { elevation, radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
 import { tagsRepo } from '@/db/repositories';
 import type { CategoryTone } from '@/constants/theme';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { useCategoriesStore } from '@/store/useCategoriesStore';
 import { selectCounts, selectRevision, useItemsStore } from '@/store/useItemsStore';
@@ -55,24 +56,18 @@ export default function BrowseScreen() {
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: insets.top + spacing.md,
+            // The hero panel absorbs the top inset itself.
             paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text variant="title1" accessibilityRole="header">
-            Browse
-          </Text>
-          <Text variant="footnote" color="muted">
-            Everything, sorted into pockets
-          </Text>
-        </View>
-
-        {/* ── Collections ─────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(280)} style={styles.section}>
-          <View style={styles.collections}>
+        {/* The two collection tiles ride the bottom edge of the panel. */}
+        <HeroHeader
+          title="Browse"
+          subtitle="Everything, sorted into pockets"
+          overlap={
+            <Animated.View entering={FadeInDown.duration(280)} style={styles.collections}>
             <CollectionTile
               icon="heart"
               label="Favourites"
@@ -87,8 +82,11 @@ export default function BrowseScreen() {
               tone={theme.tones.neutral}
               onPress={() => router.push('/archive')}
             />
-          </View>
-        </Animated.View>
+            </Animated.View>
+          }
+        />
+
+        <View style={styles.afterHero} />
 
         {/* ── Categories ──────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.duration(280).delay(60)} style={styles.section}>
@@ -167,6 +165,8 @@ function CollectionTile({
   tone: CategoryTone;
   onPress: () => void;
 }) {
+  const theme = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
@@ -174,7 +174,13 @@ function CollectionTile({
       pressScale={0.97}
       accessibilityRole="button"
       accessibilityLabel={`${label}, ${count} item${count === 1 ? '' : 's'}`}
-      style={[styles.tile, { backgroundColor: tone.bg }]}
+      // Lifted, because these float over the hero panel rather than sitting
+      // on the page like the category grid below them.
+      style={[
+        styles.tile,
+        { backgroundColor: tone.bg },
+        elevation(2, theme.colors.shadow, theme.dark),
+      ]}
     >
       <Icon
         name={icon}
@@ -242,10 +248,9 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.massive,
   },
-  header: {
-    paddingHorizontal: screenPadding,
-    gap: 2,
-    marginBottom: spacing.xl,
+  /** Space between the overlapping collection tiles and the first section. */
+  afterHero: {
+    height: spacing.xxl,
   },
   section: {
     marginBottom: spacing.xxl,

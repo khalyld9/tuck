@@ -43,6 +43,20 @@ export interface ThemeColors {
   /** Even softer wash, used for large fills. */
   accentGlow: string;
 
+  /**
+   * The masthead panel: a deep warm slab that the first cards overlap, giving
+   * the top of a screen real depth instead of a flat wash. Text placed on it
+   * must use `heroText` / `heroTextMuted`, never the normal text tokens,
+   * because the panel inverts the usual light/dark relationship.
+   */
+  heroSurface: string;
+  /** Secondary fill inside the hero panel — inset chips, bars, wells. */
+  heroSurfaceAlt: string;
+  /** Primary text on `heroSurface`. */
+  heroText: string;
+  /** Secondary text on `heroSurface`. */
+  heroTextMuted: string;
+
   /** Favourite (heart) colour. */
   favorite: string;
   /** Destructive actions. */
@@ -116,6 +130,11 @@ export const lightTheme: Theme = {
     accentSoft: palette.claySoft,
     accentGlow: palette.clayGlow,
 
+    heroSurface: palette.cacao,
+    heroSurfaceAlt: palette.cacaoTint,
+    heroText: palette.chalkBright,
+    heroTextMuted: 'rgba(246, 241, 234, 0.72)',
+
     favorite: palette.rose,
     danger: palette.danger,
     dangerSoft: palette.roseSoft,
@@ -165,6 +184,13 @@ export const darkTheme: Theme = {
     accentPressed: palette.clay,
     accentSoft: palette.clayDim,
     accentGlow: '#2A1A11',
+
+    // Dark mode already sits on near-black, so the hero panel lifts *up*
+    // instead of down — a raised warm slab rather than a deep one.
+    heroSurface: palette.bark,
+    heroSurfaceAlt: palette.loam,
+    heroText: palette.chalkBright,
+    heroTextMuted: 'rgba(246, 241, 234, 0.66)',
 
     favorite: palette.roseBright,
     danger: palette.dangerDark,

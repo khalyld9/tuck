@@ -37,7 +37,18 @@ function load(file) {
 
 const { lightTheme, darkTheme } = load('constants/theme.ts');
 
-const toRgb = (h) => {
+// Accepts #rgb, #rrggbb and rgba(...). Alpha is composited over `over`,
+// because a translucent colour's real contrast depends on what is behind it.
+const toRgb = (h, over) => {
+  const m = /rgba?\(([^)]+)\)/.exec(h);
+  if (m) {
+    const parts = m[1].split(',').map((v) => parseFloat(v.trim()));
+    const [r, g, b] = parts;
+    const a = parts.length > 3 ? parts[3] : 1;
+    if (a >= 1 || !over) return [r, g, b];
+    const bg = toRgb(over);
+    return [r, g, b].map((v, i) => v * a + bg[i] * (1 - a));
+  }
   let s = h.replace('#', '');
   if (s.length === 3) s = s.split('').map((c) => c + c).join('');
   return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16));
@@ -50,7 +61,7 @@ const luminance = (rgb) => {
   return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
 };
 const contrast = (fg, bg) => {
-  const a = luminance(toRgb(fg));
+  const a = luminance(toRgb(fg, bg));
   const b = luminance(toRgb(bg));
   const [hi, lo] = a > b ? [a, b] : [b, a];
   return (hi + 0.05) / (lo + 0.05);
@@ -80,6 +91,9 @@ for (const [themeName, theme] of [['light', lightTheme], ['dark', darkTheme]]) {
     ['accent on background', c.accent, c.background],
     ['danger on dangerSoft', c.danger, c.dangerSoft],
     ['reminder on surface', c.reminder, c.surface],
+    ['heroText on heroSurface', c.heroText, c.heroSurface],
+    ['heroTextMuted on heroSurface', c.heroTextMuted, c.heroSurface],
+    ['heroText on heroSurfaceAlt', c.heroText, c.heroSurfaceAlt],
   ];
   for (const [label, fg, bg] of textPairs) {
     const r = contrast(fg, bg);

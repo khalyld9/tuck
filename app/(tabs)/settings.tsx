@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { OptionRow } from '@/components/ui/OptionRow';
 import { Pressable } from '@/components/ui/Pressable';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toggle } from '@/components/ui/Toggle';
@@ -234,17 +235,15 @@ export default function SettingsScreen() {
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: insets.top + spacing.md,
+            // The hero panel absorbs the top inset itself.
             paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text variant="title1" accessibilityRole="header">
-            Settings
-          </Text>
-        </View>
+        <HeroHeader insideGutter title="Settings" subtitle="Yours, and only yours" />
+
+        <View style={styles.afterHero} />
 
         {/* ── Appearance ─────────────────────────────────────────── */}
         <Section title="Appearance">
@@ -572,8 +571,8 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: screenPadding,
   },
-  header: {
-    marginBottom: spacing.xl,
+  afterHero: {
+    height: spacing.xl,
   },
   section: {
     marginBottom: spacing.xxl,

@@ -28,13 +28,24 @@ export const spacing = {
   massive: 64,
 } as const;
 
+/**
+ * Corner radii.
+ *
+ * Cards sit in the 20–28 band, which is where iOS itself lives (a widget is
+ * 22, a sheet is 10 at the top on older devices and ~38 on modern ones). The
+ * scale is deliberately generous — soft, premium, friendly — without tipping
+ * into the fully-rounded blobs that read as toy-like.
+ */
 export const radius = {
-  xs: 6,
-  sm: 10,
-  md: 14,
-  lg: 18,
-  xl: 24,
-  xxl: 32,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  /** Default card radius. */
+  lg: 22,
+  /** Hero cards and large surfaces. */
+  xl: 28,
+  /** Sheets and full-bleed panels. */
+  xxl: 34,
   pill: 999,
 } as const;
 
@@ -46,32 +57,36 @@ export const screenPadding = spacing.xl;
  * on the platform's default leading.
  */
 export const typography = {
-  /** Big brand moment — "Tuck" wordmark, Surprise Me result. */
+  /**
+   * Big brand moment — the wordmark, a Surprise Me result, a hero number.
+   * Tracking tightens as size grows, the way SF Pro Display is optically
+   * sized on iOS; without it large text looks loose and webby.
+   */
   display: {
-    fontSize: 34,
-    lineHeight: 40,
-    letterSpacing: -0.8,
+    fontSize: 40,
+    lineHeight: 44,
+    letterSpacing: -1.2,
     fontWeight: '700',
   },
-  /** Screen titles. */
+  /** Screen titles — the iOS large-title slot. */
   title1: {
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.6,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.9,
     fontWeight: '700',
   },
   /** Item detail titles. */
   title2: {
-    fontSize: 22,
-    lineHeight: 28,
-    letterSpacing: -0.4,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.6,
     fontWeight: '700',
   },
   /** Section headers. */
   title3: {
-    fontSize: 17,
-    lineHeight: 22,
-    letterSpacing: -0.2,
+    fontSize: 18,
+    lineHeight: 23,
+    letterSpacing: -0.35,
     fontWeight: '600',
   },
   /** Card titles and list rows. */
@@ -160,10 +175,13 @@ export const minTouchTarget = 44;
  */
 export function elevation(level: 0 | 1 | 2 | 3, shadowColor: string, isDark: boolean) {
   if (level === 0) return {};
+  // Wide radius, small offset, low opacity: the shadow reads as ambient light
+  // rather than a drop shadow. Warm shadow colours (passed in from the theme)
+  // keep it from greying out the cream surfaces.
   const config = {
-    1: { opacity: isDark ? 0.3 : 0.05, radius: 8, offset: 2, android: 1 },
-    2: { opacity: isDark ? 0.38 : 0.07, radius: 16, offset: 4, android: 3 },
-    3: { opacity: isDark ? 0.46 : 0.1, radius: 28, offset: 10, android: 8 },
+    1: { opacity: isDark ? 0.32 : 0.055, radius: 12, offset: 3, android: 1 },
+    2: { opacity: isDark ? 0.4 : 0.08, radius: 24, offset: 8, android: 4 },
+    3: { opacity: isDark ? 0.5 : 0.12, radius: 40, offset: 16, android: 10 },
   }[level];
 
   return Platform.select({

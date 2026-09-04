@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
 import { OptionRow } from '@/components/ui/OptionRow';
 import { Screen } from '@/components/ui/Screen';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { SearchField } from '@/components/ui/SearchField';
 import { Sheet } from '@/components/ui/Sheet';
 import { Text } from '@/components/ui/Text';
@@ -84,51 +85,52 @@ export default function SavedScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <View style={styles.titleText}>
-            <Text variant="title1" accessibilityRole="header">
-              Saved
-            </Text>
-            <Text variant="footnote" color="muted">
-              {counts.active === 0
-                ? 'Nothing tucked away yet'
-                : `${counts.active} thing${counts.active === 1 ? '' : 's'} tucked away`}
-            </Text>
-          </View>
-
-          <View style={styles.actions}>
-            <IconButton
-              name="heart"
-              onPress={handleToggleFavorites}
-              accessibilityLabel={favoritesOnly ? 'Show all items' : 'Show favourites only'}
-              accessibilityState={{ selected: favoritesOnly }}
-              variant={favoritesOnly ? 'soft' : 'plain'}
-              color={favoritesOnly ? theme.colors.favorite : theme.colors.textMuted}
-              fill={favoritesOnly ? theme.colors.favorite : 'none'}
-              size={19}
+        <HeroHeader
+          insideGutter
+          title="Saved"
+          subtitle={
+            counts.active === 0
+              ? 'Nothing tucked away yet'
+              : `${counts.active} thing${counts.active === 1 ? '' : 's'} tucked away`
+          }
+          accessory={
+            <View style={styles.actions}>
+              <IconButton
+                name="heart"
+                onPress={handleToggleFavorites}
+                accessibilityLabel={favoritesOnly ? 'Show all items' : 'Show favourites only'}
+                accessibilityState={{ selected: favoritesOnly }}
+                variant={favoritesOnly ? 'soft' : 'plain'}
+                color={favoritesOnly ? theme.colors.favorite : theme.colors.heroText}
+                fill={favoritesOnly ? theme.colors.favorite : 'none'}
+                size={19}
+              />
+              <IconButton
+                name="arrow-up-down"
+                onPress={() => setSortSheetOpen(true)}
+                accessibilityLabel={`Sort. Currently ${SORT_LABELS[sort]}`}
+                color={theme.colors.heroText}
+                size={19}
+              />
+              <IconButton
+                name={viewMode === 'list' ? 'grid-2x2' : 'list'}
+                onPress={handleToggleView}
+                accessibilityLabel={
+                  viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
+                }
+                color={theme.colors.heroText}
+                size={19}
+              />
+            </View>
+          }
+          overlap={
+            <SearchField
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search your tucked things…"
+              elevated
             />
-            <IconButton
-              name="arrow-up-down"
-              onPress={() => setSortSheetOpen(true)}
-              accessibilityLabel={`Sort. Currently ${SORT_LABELS[sort]}`}
-              size={19}
-            />
-            <IconButton
-              name={viewMode === 'list' ? 'grid-2x2' : 'list'}
-              onPress={handleToggleView}
-              accessibilityLabel={
-                viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
-              }
-              size={19}
-            />
-          </View>
-        </View>
-
-        <SearchField
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search your tucked things…"
-          style={styles.search}
+          }
         />
 
         <View style={styles.rail}>
@@ -161,7 +163,7 @@ export default function SavedScreen() {
       search,
       sort,
       theme.colors.favorite,
-      theme.colors.textMuted,
+      theme.colors.heroText,
       viewMode,
     ]
   );
@@ -199,7 +201,9 @@ export default function SavedScreen() {
 
   return (
     <Screen>
-      <View style={{ flex: 1, paddingTop: insets.top + spacing.md }}>
+      {/* The hero panel absorbs the top inset itself so its colour runs under
+          the status bar; the list must not add it a second time. */}
+      <View style={styles.listWrap}>
         <ItemList
           items={items}
           viewMode={viewMode}
@@ -236,27 +240,17 @@ const styles = StyleSheet.create({
     marginHorizontal: -screenPadding,
     paddingHorizontal: screenPadding,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  titleText: {
-    flex: 1,
-    gap: 2,
-  },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: -spacing.sm,
   },
-  search: {
-    marginBottom: spacing.lg,
+  listWrap: {
+    flex: 1,
   },
   rail: {
     marginHorizontal: -screenPadding,
+    marginTop: spacing.xl,
   },
   resultCount: {
     marginTop: spacing.md,
