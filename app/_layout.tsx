@@ -76,6 +76,7 @@ function RootNavigator() {
           options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
         />
         <Stack.Screen name="category/[id]" />
+        <Stack.Screen name="collection/[id]" />
         <Stack.Screen name="archive" />
         <Stack.Screen name="favorites" />
         <Stack.Screen name="search" options={{ animation: 'fade', animationDuration: 180 }} />

@@ -112,6 +112,12 @@ export interface ItemQuery {
   scope: LibraryScope;
   search?: string;
   categoryId?: string | null;
+  /**
+   * Matches any of several categories at once. Used by groupings that span
+   * more than one pocket — "Watch later" covers both films and shows.
+   * Ignored when `categoryId` is set.
+   */
+  categoryIds?: readonly string[] | null;
   tag?: string | null;
   favoritesOnly?: boolean;
   sort: SortOption;

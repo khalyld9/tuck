@@ -144,6 +144,11 @@ export async function queryItems(query: ItemQuery): Promise<SavedItem[]> {
   if (query.categoryId) {
     where.push('i.categoryId = ?');
     params.push(query.categoryId);
+  } else if (query.categoryIds && query.categoryIds.length > 0) {
+    // Placeholders are generated from the array length and the values are
+    // still bound, so this stays parameterised rather than interpolated.
+    where.push(`i.categoryId IN (${query.categoryIds.map(() => '?').join(', ')})`);
+    params.push(...query.categoryIds);
   }
 
   const search = query.search?.trim().toLowerCase();
@@ -257,6 +262,46 @@ export async function getPulse(now: number = Date.now()): Promise<LibraryPulse> 
   };
 }
 
+/**
+ * How many things were saved on each of the last seven days, oldest first.
+ *
+ * Drives the sparkline on Home. Bucketing happens in SQL against the
+ * `createdAt` index rather than by loading rows and grouping in JS, so the
+ * cost doesn't grow with the size of the library. Days with nothing saved
+ * come back as 0 rather than being dropped, because the chart needs a slot
+ * per day to stay readable.
+ */
+export async function countPerDay(
+  days = 7,
+  now: number = Date.now()
+): Promise<{ day: number; count: number }[]> {
+  const db = await getDatabase();
+
+  // Local midnight, so "today" matches what the calendar says rather than UTC.
+  const midnight = new Date(now);
+  midnight.setHours(0, 0, 0, 0);
+  const start = midnight.getTime() - (days - 1) * 86_400_000;
+
+  const rows = await db.getAllAsync<{ offset: number; total: number }>(
+    `SELECT CAST((createdAt - ?) / 86400000 AS INTEGER) AS offset,
+            COUNT(*) AS total
+     FROM items
+     WHERE createdAt >= ? AND isArchived = 0
+     GROUP BY offset`,
+    [start, start]
+  );
+
+  const buckets = new Array<number>(days).fill(0);
+  for (const row of rows) {
+    if (row.offset >= 0 && row.offset < days) buckets[row.offset] = row.total;
+  }
+
+  return buckets.map((count, index) => ({
+    day: start + index * 86_400_000,
+    count,
+  }));
+}
+
 export interface LibraryCounts {
   active: number;
   archived: number;
@@ -289,6 +334,27 @@ export async function getCounts(): Promise<LibraryCounts> {
     withReminders: row?.withReminders ?? 0,
     total: row?.total ?? 0,
   };
+}
+
+/**
+ * Active item totals per category, as a plain map.
+ *
+ * Home's "Come back to" rows each span several categories, so they need
+ * arbitrary sums rather than the per-category rows the categories store
+ * already holds. One grouped query answers every row at once.
+ */
+export async function countByCategory(): Promise<Record<string, number>> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<{ categoryId: string; total: number }>(
+    `SELECT categoryId, COUNT(*) AS total
+     FROM items
+     WHERE isArchived = 0
+     GROUP BY categoryId`
+  );
+
+  const counts: Record<string, number> = {};
+  for (const row of rows) counts[row.categoryId] = row.total;
+  return counts;
 }
 
 /** Picks one random active item — the engine behind Surprise Me. */
