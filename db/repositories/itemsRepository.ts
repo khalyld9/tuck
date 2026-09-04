@@ -194,6 +194,69 @@ export async function listUpcomingReminders(limit = 5): Promise<SavedItem[]> {
   return rows.map(mapItem);
 }
 
+/**
+ * The handful of numbers Home needs to say something true about the library.
+ *
+ * One aggregate query rather than several, because this runs on every visit
+ * to the first screen.
+ */
+export interface LibraryPulse {
+  /** Saved in the last 7 days. */
+  savedThisWeek: number;
+  /** Active items older than 30 days — the quietly forgotten pile. */
+  gatheringDust: number;
+  /** Reminders that have already passed. */
+  overdue: number;
+  /** Reminders due in the next 24 hours. */
+  dueSoon: number;
+  /** Name of the category with the most active items, if there is one. */
+  topCategory: string | null;
+  topCategoryCount: number;
+}
+
+export async function getPulse(now: number = Date.now()): Promise<LibraryPulse> {
+  const db = await getDatabase();
+  const week = now - 7 * 86_400_000;
+  const month = now - 30 * 86_400_000;
+  const tomorrow = now + 86_400_000;
+
+  const row = await db.getFirstAsync<{
+    savedThisWeek: number;
+    gatheringDust: number;
+    overdue: number;
+    dueSoon: number;
+  }>(
+    `SELECT
+       SUM(CASE WHEN createdAt >= ? AND isArchived = 0 THEN 1 ELSE 0 END) AS savedThisWeek,
+       SUM(CASE WHEN createdAt < ? AND isArchived = 0 THEN 1 ELSE 0 END) AS gatheringDust,
+       SUM(CASE WHEN reminderAt IS NOT NULL AND reminderAt < ? AND isArchived = 0
+                THEN 1 ELSE 0 END) AS overdue,
+       SUM(CASE WHEN reminderAt IS NOT NULL AND reminderAt >= ? AND reminderAt < ?
+                AND isArchived = 0 THEN 1 ELSE 0 END) AS dueSoon
+     FROM items`,
+    [week, month, now, now, tomorrow]
+  );
+
+  const top = await db.getFirstAsync<{ name: string; total: number }>(
+    `SELECT c.name AS name, COUNT(*) AS total
+     FROM items i
+     JOIN categories c ON c.id = i.categoryId
+     WHERE i.isArchived = 0
+     GROUP BY i.categoryId
+     ORDER BY total DESC, c.sortOrder ASC
+     LIMIT 1`
+  );
+
+  return {
+    savedThisWeek: row?.savedThisWeek ?? 0,
+    gatheringDust: row?.gatheringDust ?? 0,
+    overdue: row?.overdue ?? 0,
+    dueSoon: row?.dueSoon ?? 0,
+    topCategory: top?.name ?? null,
+    topCategoryCount: top?.total ?? 0,
+  };
+}
+
 export interface LibraryCounts {
   active: number;
   archived: number;

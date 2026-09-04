@@ -11,7 +11,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toggle } from '@/components/ui/Toggle';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing } from '@/constants/tokens';
+import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
 import { resetUserData } from '@/db/database';
 import { useTheme } from '@/hooks/useTheme';
 import { haptics } from '@/lib/haptics';
@@ -233,7 +233,10 @@ export default function SettingsScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.md, paddingBottom: spacing.massive },
+          {
+            paddingTop: insets.top + spacing.md,
+            paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
+          },
         ]}
         showsVerticalScrollIndicator={false}
       >

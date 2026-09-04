@@ -12,7 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { Sheet } from '@/components/ui/Sheet';
 import { Text } from '@/components/ui/Text';
-import { screenPadding, spacing } from '@/constants/tokens';
+import { screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
 import { useDebounced, useItemQuery } from '@/hooks/useItemQuery';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useTheme } from '@/hooks/useTheme';
@@ -209,6 +209,7 @@ export default function SavedScreen() {
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
           swipeEnabled={viewMode === 'list'}
+          contentContainerStyle={{ paddingBottom: insets.bottom + tabBarClearance + spacing.xl }}
         />
       </View>
 

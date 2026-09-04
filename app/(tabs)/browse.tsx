@@ -10,7 +10,7 @@ import { Pressable } from '@/components/ui/Pressable';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing } from '@/constants/tokens';
+import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
 import { tagsRepo } from '@/db/repositories';
 import { useTheme } from '@/hooks/useTheme';
 import { useCategoriesStore } from '@/store/useCategoriesStore';
@@ -53,7 +53,10 @@ export default function BrowseScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.md, paddingBottom: spacing.massive },
+          {
+            paddingTop: insets.top + spacing.md,
+            paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
+          },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -90,9 +93,9 @@ export default function BrowseScreen() {
         <Animated.View entering={FadeInDown.duration(280).delay(60)} style={styles.section}>
           <SectionHeader title="Categories" style={styles.sectionHeader} />
 
-          <View style={styles.categoryList}>
+          <View style={styles.categoryGrid}>
             {withItems.map((category) => (
-              <CategoryRow
+              <CategoryTile
                 key={category.id}
                 category={category}
                 onPress={openCategory(category)}
@@ -188,7 +191,14 @@ function CollectionTile({
   );
 }
 
-function CategoryRow({
+/**
+ * A category as a tonal tile.
+ *
+ * Each category owns a colour, so the grid becomes scannable by hue — you
+ * find Food by looking for the pink one, not by reading thirteen labels. The
+ * count sits large because it's the useful number; the name labels it.
+ */
+function CategoryTile({
   category,
   onPress,
 }: {
@@ -202,28 +212,23 @@ function CategoryRow({
     <Pressable
       onPress={onPress}
       haptic="light"
-      pressScale={0.985}
+      pressScale={0.96}
       accessibilityRole="button"
       accessibilityLabel={`${category.name}, ${category.itemCount} item${
         category.itemCount === 1 ? '' : 's'
       }`}
-      style={[
-        styles.categoryRow,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
-      ]}
+      style={[styles.categoryTile, { backgroundColor: tone.bg }]}
     >
-      <View style={[styles.categoryIcon, { backgroundColor: tone.bg }]}>
-        <Icon name={category.icon} size={18} color={tone.fg} strokeWidth={2} />
+      <Icon name={category.icon} size={20} color={tone.fg} strokeWidth={2} />
+
+      <View style={styles.categoryTileText}>
+        <Text variant="footnote" numberOfLines={1} style={{ color: tone.fg }}>
+          {category.name}
+        </Text>
+        <Text variant="title3" style={{ color: tone.fg }}>
+          {category.itemCount}
+        </Text>
       </View>
-
-      <Text variant="body" style={styles.categoryName}>
-        {category.name}
-      </Text>
-
-      <Text variant="footnote" color="subtle">
-        {category.itemCount}
-      </Text>
-      <Icon name="chevron-right" size={17} color={theme.colors.textSubtle} />
     </Pressable>
   );
 }
@@ -263,30 +268,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
-  categoryList: {
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: screenPadding,
     gap: spacing.sm,
   },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    minHeight: 60,
+  categoryTile: {
+    // Three across, sized by percentage so it adapts to any screen width.
+    width: '31.6%',
+    aspectRatio: 1,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    justifyContent: 'space-between',
   },
-  categoryIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryName: {
-    flex: 1,
-    fontWeight: '500',
+  categoryTileText: {
+    gap: 1,
   },
   emptyCategories: {
     paddingHorizontal: screenPadding,

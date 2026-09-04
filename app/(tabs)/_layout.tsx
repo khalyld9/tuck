@@ -3,7 +3,7 @@ import { StyleSheet, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/components/ui/Icon';
-import { typography } from '@/constants/tokens';
+import { elevation, radius, spacing, typography } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { haptics } from '@/lib/haptics';
 
@@ -12,7 +12,7 @@ function TabIcon({ name, color, focused }: { name: IconName; color: ColorValue; 
     <View style={styles.iconWrap}>
       <Icon
         name={name}
-        size={22}
+        size={21}
         color={String(color)}
         strokeWidth={focused ? 2.4 : 1.9}
         // The active tab is filled as well as tinted, so the state doesn't
@@ -36,22 +36,35 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: theme.colors.accent,
         tabBarInactiveTintColor: theme.colors.textSubtle,
+        // A floating bar rather than a docked one: the list scrolls beneath
+        // it, which keeps the warm background visible at the edges and stops
+        // the app bottoming out in a hard grey slab.
         tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.border,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          height: 56 + insets.bottom,
-          paddingTop: 6,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-          elevation: 0,
+          position: 'absolute',
+          left: spacing.md,
+          right: spacing.md,
+          bottom: Math.max(insets.bottom, spacing.md),
+          // 10 pad + 22 icon + 3 gap + 13 label + 10 pad, rounded up.
+          height: 72,
+          borderRadius: radius.xl,
+          backgroundColor: theme.colors.surfaceElevated,
+          borderTopWidth: 0,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: theme.colors.border,
+          paddingTop: 10,
+          paddingBottom: 10,
+          paddingHorizontal: spacing.xs,
+          ...elevation(2, theme.colors.shadow, theme.dark),
         },
         tabBarLabelStyle: {
-          ...typography.caption,
-          fontWeight: '600',
-          marginTop: 2,
+          ...typography.overline,
+          fontSize: 10,
+          letterSpacing: 0.2,
+          marginTop: 3,
         },
         tabBarItemStyle: {
-          paddingVertical: 2,
+          paddingVertical: 0,
+          borderRadius: radius.lg,
         },
         sceneStyle: {
           backgroundColor: theme.colors.background,
@@ -106,6 +119,6 @@ const styles = StyleSheet.create({
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 26,
+    height: 22,
   },
 });

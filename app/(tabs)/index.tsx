@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemCard } from '@/components/cards/ItemCard';
 import { CategoryRail } from '@/components/categories/CategoryRail';
+import { MascotNoteCard, pickNote } from '@/components/home/MascotNote';
 import { UpcomingCard } from '@/components/home/UpcomingCard';
 import { Mascot } from '@/components/mascot/Mascot';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -15,8 +16,9 @@ import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing } from '@/constants/tokens';
+import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
 import { itemsRepo } from '@/db/repositories';
+import type { LibraryPulse } from '@/db/repositories/itemsRepository';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useTheme } from '@/hooks/useTheme';
 import { greeting } from '@/lib/datetime';
@@ -51,6 +53,10 @@ export default function HomeScreen() {
 
   const { items: recent } = useItemQuery({ scope: 'active', sort: 'recent', limit: 5 });
   const upcoming = useUpcoming(revision);
+  const pulse = usePulse(revision);
+
+  // What Tuck has to say about the library right now, if anything.
+  const note = pulse ? pickNote(pulse, counts.active) : null;
 
   const handleOpen = useCallback((item: SavedItem) => openDetail(item), [openDetail]);
 
@@ -70,7 +76,10 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.md, paddingBottom: spacing.huge },
+          {
+            paddingTop: insets.top + spacing.md,
+            paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -86,9 +95,27 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          {/* The mascot greets from the masthead — small, never dominant. */}
-          <Mascot pose="idle" size={64} animate idle accessibilityLabel="Tuck, your saving companion" />
+          {/* Tuck only appears up here when there's nothing to say below. */}
+          {note ? null : (
+            <Mascot
+              pose="idle"
+              size={64}
+              animate
+              idle
+              accessibilityLabel="Tuck, your saving companion"
+            />
+          )}
         </Animated.View>
+
+        {/* ── What Tuck noticed ────────────────────────────────────── */}
+        {note ? (
+          <View style={styles.noteWrap}>
+            <MascotNoteCard
+              note={note}
+              onPress={note.href ? () => router.push(note.href as '/saved') : undefined}
+            />
+          </View>
+        ) : null}
 
         {/* ── Search ───────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.duration(300).delay(60)} style={styles.searchWrap}>
@@ -229,6 +256,28 @@ function useUpcoming(revision: number): SavedItem[] {
   return items;
 }
 
+/** The few aggregate numbers behind Tuck's note. One query, refetched on change. */
+function usePulse(revision: number): LibraryPulse | null {
+  const [pulse, setPulse] = useState<LibraryPulse | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    itemsRepo
+      .getPulse()
+      .then((next) => {
+        if (active) setPulse(next);
+      })
+      .catch(() => {
+        if (active) setPulse(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [revision]);
+
+  return pulse;
+}
+
 /** Floating quick-add button, present on Home and Saved. */
 export function AddButton() {
   const theme = useTheme();
@@ -237,7 +286,11 @@ export function AddButton() {
   return (
     <Animated.View
       entering={FadeIn.duration(300).delay(240)}
-      style={[styles.fabWrap, { bottom: Math.max(insets.bottom, spacing.sm) + spacing.lg }]}
+      style={[
+        styles.fabWrap,
+        // Sits above the floating tab bar, not behind it.
+        { bottom: insets.bottom + tabBarClearance + spacing.sm },
+      ]}
       pointerEvents="box-none"
     >
       <Pressable
@@ -270,6 +323,10 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
     gap: 2,
+  },
+  noteWrap: {
+    paddingHorizontal: screenPadding,
+    marginBottom: spacing.xl,
   },
   searchWrap: {
     paddingHorizontal: screenPadding,

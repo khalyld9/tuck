@@ -211,3 +211,12 @@ export const cardMetrics = {
  * Native platforms ignore this key entirely.
  */
 export const noWebOutline = { outlineStyle: 'none' } as unknown as TextStyle;
+
+/**
+ * Height of the floating tab bar plus its gap to the screen edge.
+ *
+ * The bar is absolutely positioned so content scrolls underneath it. Every
+ * scrollable tab screen adds this to its bottom inset so the last row can
+ * always clear the bar.
+ */
+export const tabBarClearance = 72 + spacing.md + spacing.md;
