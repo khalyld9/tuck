@@ -86,8 +86,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    // Modern iOS sheet corners are noticeably deeper than a card's.
+    borderTopLeftRadius: radius.xxl,
+    borderTopRightRadius: radius.xxl,
     borderWidth: StyleSheet.hairlineWidth,
     paddingTop: spacing.sm,
     paddingHorizontal: spacing.xl,

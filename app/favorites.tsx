@@ -1,14 +1,14 @@
 import { router } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
-import { Text } from '@/components/ui/Text';
-import { screenPadding, spacing } from '@/constants/tokens';
+import { spacing } from '@/constants/tokens';
+import { useTheme } from '@/hooks/useTheme';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useItemQuery } from '@/hooks/useItemQuery';
 import { haptics } from '@/lib/haptics';
@@ -16,7 +16,6 @@ import { selectSavedViewMode, useSettingsStore } from '@/store/useSettingsStore'
 
 /** The things worth keeping close. */
 export default function FavoritesScreen() {
-  const insets = useSafeAreaInsets();
   const viewMode = useSettingsStore(selectSavedViewMode);
   const setSetting = useSettingsStore((state) => state.set);
 
@@ -28,6 +27,8 @@ export default function FavoritesScreen() {
     else router.replace('/(tabs)/browse');
   }, []);
 
+  const theme = useTheme();
+
   const handleToggleView = useCallback(() => {
     haptics.selection();
     void setSetting('savedViewMode', viewMode === 'list' ? 'grid' : 'list');
@@ -36,40 +37,44 @@ export default function FavoritesScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <Text variant="title1" accessibilityRole="header">
-          Favourites
-        </Text>
-        <Text variant="footnote" color="muted">
-          {items.length === 0
-            ? 'Nothing starred yet'
-            : `${items.length} thing${items.length === 1 ? '' : 's'} you love`}
-        </Text>
+        <HeroHeader
+          insideGutter
+          title="Favourites"
+          subtitle={
+            items.length === 0
+              ? 'Nothing starred yet'
+              : `${items.length} thing${items.length === 1 ? '' : 's'} you love`
+          }
+          navRow={
+            <>
+              <IconButton
+                name="arrow-left"
+                onPress={handleBack}
+                accessibilityLabel="Go back"
+                color={theme.colors.heroText}
+                size={19}
+              />
+              {items.length > 0 ? (
+                <IconButton
+                  name={viewMode === 'list' ? 'grid-2x2' : 'list'}
+                  onPress={handleToggleView}
+                  accessibilityLabel={
+                    viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
+                  }
+                  color={theme.colors.heroText}
+                  size={19}
+                />
+              ) : null}
+            </>
+          }
+        />
       </View>
     ),
-    [items.length]
+    [items.length, handleBack, handleToggleView, viewMode, theme.colors.heroText]
   );
 
   return (
     <Screen>
-      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <IconButton
-          name="arrow-left"
-          onPress={handleBack}
-          accessibilityLabel="Go back"
-          size={19}
-        />
-        {items.length > 0 ? (
-          <IconButton
-            name={viewMode === 'list' ? 'grid-2x2' : 'list'}
-            onPress={handleToggleView}
-            accessibilityLabel={
-              viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
-            }
-            size={19}
-          />
-        ) : null}
-      </View>
-
       <ItemList
         items={items}
         viewMode={viewMode}
@@ -95,15 +100,7 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: screenPadding - spacing.sm,
-    paddingBottom: spacing.sm,
-  },
   header: {
     paddingBottom: spacing.lg,
-    gap: 2,
   },
 });

@@ -12,6 +12,12 @@ export interface HeroHeaderProps {
   subtitle?: string;
   /** Rendered at the top-right of the panel — mascot, action buttons. */
   accessory?: ReactNode;
+  /**
+   * A navigation row drawn above the title, inside the panel. Sub-screens use
+   * this for their back button so the nav sits *on* the masthead instead of
+   * floating in a separate strip above it.
+   */
+  navRow?: ReactNode;
   /** Rendered inside the panel, below the title row. */
   children?: ReactNode;
   /**
@@ -50,6 +56,7 @@ export const HeroHeader = memo(function HeroHeader({
   title,
   subtitle,
   accessory,
+  navRow,
   children,
   overlap,
   insideGutter = false,
@@ -66,7 +73,8 @@ export const HeroHeader = memo(function HeroHeader({
           insideGutter && styles.panelCancelGutter,
           {
             backgroundColor: theme.colors.heroSurface,
-            paddingTop: insets.top + spacing.lg,
+            // A nav row sits tighter to the status bar than a bare title.
+            paddingTop: insets.top + (navRow ? spacing.xs : spacing.lg),
             borderBottomLeftRadius: radius.xxl,
             borderBottomRightRadius: radius.xxl,
           },
@@ -75,6 +83,8 @@ export const HeroHeader = memo(function HeroHeader({
           overlap ? styles.panelWithOverlap : styles.panelPlain,
         ]}
       >
+        {navRow ? <View style={styles.navRow}>{navRow}</View> : null}
+
         <Animated.View entering={FadeIn.duration(320)} style={styles.row}>
           <View style={styles.titleBlock}>
             <Text
@@ -122,6 +132,14 @@ const styles = StyleSheet.create({
    */
   panelWithOverlap: {
     paddingBottom: spacing.massive + spacing.sm,
+  },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    // Pull icon buttons out to the true edge; their own padding re-insets them.
+    marginHorizontal: -spacing.sm,
+    marginBottom: spacing.sm,
   },
   row: {
     flexDirection: 'row',

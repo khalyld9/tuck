@@ -1,16 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing } from '@/constants/tokens';
+import { radius, spacing } from '@/constants/tokens';
 import { useDebounced, useItemQuery } from '@/hooks/useItemQuery';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useTheme } from '@/hooks/useTheme';
@@ -21,7 +21,6 @@ import { selectSavedSort, selectSavedViewMode, useSettingsStore } from '@/store/
 /** Everything inside one category. */
 export default function CategoryScreen() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const resolveCategory = useCategoriesStore((state) => state.resolve);
@@ -57,48 +56,67 @@ export default function CategoryScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <View style={[styles.icon, { backgroundColor: tone.bg }]}>
-          <Icon name={category.icon} size={24} color={tone.fg} strokeWidth={2} />
-        </View>
-
-        <Text variant="title1" accessibilityRole="header">
-          {category.name}
-        </Text>
-        <Text variant="footnote" color="muted" style={styles.count}>
-          {items.length} thing{items.length === 1 ? '' : 's'} tucked away
-        </Text>
-
-        {/* Search only appears once the category is big enough to need it. */}
-        {(items.length > 6 || debounced.length > 0) && (
-          <SearchField
-            value={search}
-            onChangeText={setSearch}
-            placeholder={`Search ${category.name.toLowerCase()}…`}
-            style={styles.search}
-          />
-        )}
+        <HeroHeader
+          insideGutter
+          title={category.name}
+          subtitle={`${items.length} thing${items.length === 1 ? '' : 's'} tucked away`}
+          navRow={
+            <>
+              <IconButton
+                name="arrow-left"
+                onPress={handleBack}
+                accessibilityLabel="Go back"
+                color={theme.colors.heroText}
+                size={19}
+              />
+              <IconButton
+                name={viewMode === 'list' ? 'grid-2x2' : 'list'}
+                onPress={handleToggleView}
+                accessibilityLabel={
+                  viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'
+                }
+                color={theme.colors.heroText}
+                size={19}
+              />
+            </>
+          }
+          // The category's own colour, carried onto the masthead.
+          accessory={
+            <View style={[styles.icon, { backgroundColor: tone.bg }]}>
+              <Icon name={category.icon} size={24} color={tone.fg} strokeWidth={2} />
+            </View>
+          }
+          // Search only appears once the category is big enough to need it.
+          overlap={
+            items.length > 6 || debounced.length > 0 ? (
+              <SearchField
+                value={search}
+                onChangeText={setSearch}
+                placeholder={`Search ${category.name.toLowerCase()}…`}
+                elevated
+              />
+            ) : undefined
+          }
+        />
       </View>
     ),
-    [category.icon, category.name, debounced.length, items.length, search, tone.bg, tone.fg]
+    [
+      category.icon,
+      category.name,
+      debounced.length,
+      handleBack,
+      handleToggleView,
+      items.length,
+      search,
+      theme.colors.heroText,
+      tone.bg,
+      tone.fg,
+      viewMode,
+    ]
   );
 
   return (
     <Screen>
-      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <IconButton
-          name="arrow-left"
-          onPress={handleBack}
-          accessibilityLabel="Go back"
-          size={19}
-        />
-        <IconButton
-          name={viewMode === 'list' ? 'grid-2x2' : 'list'}
-          onPress={handleToggleView}
-          accessibilityLabel={viewMode === 'list' ? 'Switch to grid view' : 'Switch to list view'}
-          size={19}
-        />
-      </View>
-
       <ItemList
         items={items}
         viewMode={viewMode}
@@ -133,16 +151,8 @@ export default function CategoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: screenPadding - spacing.sm,
-    paddingBottom: spacing.sm,
-  },
   header: {
     paddingBottom: spacing.lg,
-    gap: 2,
   },
   icon: {
     width: 52,
@@ -150,12 +160,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  count: {
-    marginBottom: spacing.md,
-  },
-  search: {
-    marginTop: spacing.sm,
   },
 });

@@ -142,7 +142,7 @@ export const lightTheme: Theme = {
     reminder: palette.ocean,
     reminderSoft: palette.oceanSoft,
 
-    scrim: 'rgba(26, 22, 19, 0.32)',
+    scrim: 'rgba(58, 39, 29, 0.42)',
     skeleton: palette.sand,
 
     swipeArchive: palette.slate,

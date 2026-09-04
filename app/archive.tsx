@@ -1,14 +1,15 @@
 import { router } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { screenPadding, spacing } from '@/constants/tokens';
+import { spacing } from '@/constants/tokens';
+import { useTheme } from '@/hooks/useTheme';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useItemQuery } from '@/hooks/useItemQuery';
 import { haptics } from '@/lib/haptics';
@@ -22,7 +23,7 @@ import type { SavedItem } from '@/types/models';
  * deletion always asks first.
  */
 export default function ArchiveScreen() {
-  const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const clearArchive = useItemsStore((state) => state.clearArchive);
   const showSnackbar = useUiStore((state) => state.showSnackbar);
 
@@ -65,14 +66,35 @@ export default function ArchiveScreen() {
   const header = useMemo(
     () => (
       <View style={styles.header}>
-        <Text variant="title1" accessibilityRole="header">
-          Archive
-        </Text>
-        <Text variant="footnote" color="muted">
-          {items.length === 0
-            ? 'Nothing archived'
-            : `${items.length} finished thing${items.length === 1 ? '' : 's'}`}
-        </Text>
+        <HeroHeader
+          insideGutter
+          title="Archive"
+          subtitle={
+            items.length === 0
+              ? 'Nothing archived'
+              : `${items.length} finished thing${items.length === 1 ? '' : 's'}`
+          }
+          navRow={
+            <>
+              <IconButton
+                name="arrow-left"
+                onPress={handleBack}
+                accessibilityLabel="Go back"
+                color={theme.colors.heroText}
+                size={19}
+              />
+              {items.length > 0 ? (
+                <IconButton
+                  name="trash-2"
+                  onPress={handleClear}
+                  accessibilityLabel="Permanently delete everything in the archive"
+                  color={theme.colors.heroText}
+                  size={18}
+                />
+              ) : null}
+            </>
+          }
+        />
 
         {items.length > 0 ? (
           <Text variant="label" color="subtle" style={styles.hint}>
@@ -81,28 +103,11 @@ export default function ArchiveScreen() {
         ) : null}
       </View>
     ),
-    [items.length]
+    [items.length, handleBack, handleClear, theme.colors.heroText]
   );
 
   return (
     <Screen>
-      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <IconButton
-          name="arrow-left"
-          onPress={handleBack}
-          accessibilityLabel="Go back"
-          size={19}
-        />
-        {items.length > 0 ? (
-          <IconButton
-            name="trash-2"
-            onPress={handleClear}
-            accessibilityLabel="Permanently delete everything in the archive"
-            size={18}
-          />
-        ) : null}
-      </View>
-
       <ItemList
         items={items}
         viewMode="list"
@@ -129,18 +134,10 @@ export default function ArchiveScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: screenPadding - spacing.sm,
-    paddingBottom: spacing.sm,
-  },
   hint: {
-    marginTop: spacing.xs,
+    marginTop: spacing.md,
   },
   header: {
     paddingBottom: spacing.lg,
-    gap: 2,
   },
 });
