@@ -1,7 +1,18 @@
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AddTuckSheet } from '@/components/home/AddTuckSheet';
+import { FloatingAddButton } from '@/components/navigation/FloatingAddButton';
+import { useCategoriesStore } from '@/store/useCategoriesStore';
+
+import {
+  TAB_BAR_HEIGHT,
+  tabBarBottom,
+  tabBarInset,
+  tabBarRightGutter,
+} from '@/components/navigation/metrics';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { elevation, radius, spacing, typography } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
@@ -43,8 +54,23 @@ function TabIcon({
 export default function TabsLayout() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const categories = useCategoriesStore((state) => state.categories);
+
+  // The add button lives beside the bar on every tab, so it and its sheet are
+  // owned here rather than duplicated per screen.
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
+
+  const handlePick = useCallback((categoryId: string | null) => {
+    setAddSheetOpen(false);
+    // Let the sheet finish dismissing before the form slides up, otherwise
+    // the two transitions fight each other.
+    setTimeout(() => {
+      router.push(categoryId ? `/add?categoryId=${categoryId}` : '/add');
+    }, 180);
+  }, []);
 
   return (
+    <>
     <Tabs
       screenListeners={{
         tabPress: () => haptics.selection(),
@@ -53,18 +79,16 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: theme.colors.accent,
         tabBarInactiveTintColor: theme.colors.textSubtle,
-        // A floating bar rather than a docked one: the list scrolls beneath
-        // it, which keeps the warm background visible at the edges and stops
-        // the app bottoming out in a hard grey slab.
+        // A floating, inset bar rather than a docked full-width footer: the
+        // content scrolls beneath it, which keeps the warm background visible
+        // at the edges. It stops short on the right so the add button can sit
+        // beside it as a separate control — see components/navigation/metrics.
         tabBarStyle: {
           position: 'absolute',
-          left: spacing.md,
-          right: spacing.md,
-          bottom: Math.max(insets.bottom, spacing.md),
-          // 8 pad + 30 icon pill + 2 gap + 14 label line + 10 pad = 64, plus
-          // headroom so a scaled label is never clipped.
-          // Keep in sync with `tabBarClearance` in constants/tokens.ts.
-          height: 74,
+          left: tabBarInset,
+          right: tabBarInset + tabBarRightGutter,
+          bottom: tabBarBottom(insets.bottom),
+          height: TAB_BAR_HEIGHT,
           borderRadius: radius.xl,
           backgroundColor: theme.colors.surfaceElevated,
           borderTopWidth: 0,
@@ -80,6 +104,14 @@ export default function TabsLayout() {
           fontSize: 10,
           letterSpacing: 0.2,
           marginTop: 2,
+          // The bar is narrower than a full-width footer because the add
+          // button sits beside it. React Navigation pads each item by 5pt on
+          // an inner pressable that tabBarItemStyle can't reach, and caps the
+          // label at 100% of that padded box — which ellipsises "Settings" to
+          // "Setti…" on a 320pt screen. Bleeding back into the padding and
+          // lifting the cap to match buys the ~6pt the longest label needs.
+          marginHorizontal: -spacing.xs,
+          maxWidth: '120%',
         },
         tabBarItemStyle: {
           paddingVertical: 0,
@@ -151,6 +183,16 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+
+      <FloatingAddButton onPress={() => setAddSheetOpen(true)} />
+
+      <AddTuckSheet
+        visible={addSheetOpen}
+        onClose={() => setAddSheetOpen(false)}
+        categories={categories}
+        onPick={handlePick}
+      />
+    </>
   );
 }
 

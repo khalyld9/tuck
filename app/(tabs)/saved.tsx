@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryRail } from '@/components/categories/CategoryRail';
 import { ItemList } from '@/components/lists/ItemList';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { tabBarClearanceFor } from '@/components/navigation/metrics';
 import { IconButton } from '@/components/ui/IconButton';
 import { OptionRow } from '@/components/ui/OptionRow';
 import { Screen } from '@/components/ui/Screen';
@@ -13,7 +14,7 @@ import { HeroHeader } from '@/components/ui/HeroHeader';
 import { SearchField } from '@/components/ui/SearchField';
 import { Sheet } from '@/components/ui/Sheet';
 import { Text } from '@/components/ui/Text';
-import { screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
+import { screenPadding, spacing } from '@/constants/tokens';
 import { useDebounced, useItemQuery } from '@/hooks/useItemQuery';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useTheme } from '@/hooks/useTheme';
@@ -27,7 +28,6 @@ import {
 } from '@/store/useSettingsStore';
 import { SORT_LABELS, type SortOption } from '@/types/models';
 
-import { AddButton } from './index';
 
 /**
  * Saved — the full library.
@@ -215,11 +215,9 @@ export default function SavedScreen() {
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
           swipeEnabled={viewMode === 'list'}
-          contentContainerStyle={{ paddingBottom: insets.bottom + tabBarClearance + spacing.xl }}
+          contentContainerStyle={{ paddingBottom: tabBarClearanceFor(insets.bottom) }}
         />
       </View>
-
-      <AddButton />
 
       <Sheet visible={sortSheetOpen} onClose={() => setSortSheetOpen(false)} title="Sort by">
         {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (

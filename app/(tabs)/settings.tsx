@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { tabBarClearanceFor } from '@/components/navigation/metrics';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { OptionRow } from '@/components/ui/OptionRow';
 import { Pressable } from '@/components/ui/Pressable';
@@ -12,7 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toggle } from '@/components/ui/Toggle';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
+import { radius, screenPadding, spacing } from '@/constants/tokens';
 import { resetUserData } from '@/db/database';
 import { useTheme } from '@/hooks/useTheme';
 import { haptics } from '@/lib/haptics';
@@ -236,7 +237,7 @@ export default function SettingsScreen() {
           styles.content,
           {
             // The hero panel absorbs the top inset itself.
-            paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
+            paddingBottom: tabBarClearanceFor(insets.bottom),
           },
         ]}
         showsVerticalScrollIndicator={false}

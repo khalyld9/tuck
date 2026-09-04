@@ -231,10 +231,11 @@ export const cardMetrics = {
 export const noWebOutline = { outlineStyle: 'none' } as unknown as TextStyle;
 
 /**
- * Height of the floating tab bar plus its gap to the screen edge.
+ * Room the floating navigation cluster needs at the bottom of a screen.
  *
- * The bar is absolutely positioned so content scrolls underneath it. Every
- * scrollable tab screen adds this to its bottom inset so the last row can
- * always clear the bar.
+ * Superseded by `tabBarClearanceFor(bottomInset)` in
+ * components/navigation/metrics.ts, which accounts for the home indicator
+ * properly instead of leaving each caller to add the safe-area inset itself.
+ * Kept only for non-tab screens that have no inset to add.
  */
-export const tabBarClearance = 74 + spacing.md + spacing.md;
+export const tabBarClearance = 72 + spacing.md + spacing.lg;

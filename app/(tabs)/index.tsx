@@ -12,6 +12,7 @@ import { SummaryStrip } from '@/components/home/SummaryStrip';
 import { UpcomingCard } from '@/components/home/UpcomingCard';
 import { Mascot } from '@/components/mascot/Mascot';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { tabBarClearanceFor } from '@/components/navigation/metrics';
 import { Icon } from '@/components/ui/Icon';
 import { Pressable } from '@/components/ui/Pressable';
 import { HeroHeader } from '@/components/ui/HeroHeader';
@@ -19,7 +20,7 @@ import { Screen } from '@/components/ui/Screen';
 import { SearchField } from '@/components/ui/SearchField';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
-import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
+import { radius, screenPadding, spacing } from '@/constants/tokens';
 import { itemsRepo } from '@/db/repositories';
 import type { LibraryPulse } from '@/db/repositories/itemsRepository';
 import { useItemActions } from '@/hooks/useItemActions';
@@ -92,7 +93,7 @@ export default function HomeScreen() {
           styles.content,
           {
             // The hero panel absorbs the top inset itself.
-            paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
+            paddingBottom: tabBarClearanceFor(insets.bottom),
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -257,8 +258,6 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      <AddButton onPress={() => setAddSheetOpen(true)} />
-
       <AddTuckSheet
         visible={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
@@ -318,43 +317,6 @@ function usePulse(revision: number): LibraryPulse | null {
   return pulse;
 }
 
-/**
- * Floating quick-add button, present on Home and Saved.
- *
- * `onPress` lets Home open the "Tuck something" sheet instead; without it the
- * button goes straight to the blank form, which is what Saved wants.
- */
-export function AddButton({ onPress }: { onPress?: () => void }) {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
-
-  return (
-    <Animated.View
-      entering={FadeIn.duration(300).delay(240)}
-      style={[
-        styles.fabWrap,
-        // Sits above the floating tab bar, not behind it.
-        { bottom: insets.bottom + tabBarClearance + spacing.sm },
-      ]}
-      pointerEvents="box-none"
-    >
-      <Pressable
-        onPress={onPress ?? (() => router.push('/add'))}
-        haptic="medium"
-        pressScale={0.92}
-        accessibilityRole="button"
-        accessibilityLabel="Tuck something away"
-        accessibilityHint={
-          onPress ? 'Opens a list of things you can save' : 'Opens the form to save a new item'
-        }
-        style={[styles.fab, { backgroundColor: theme.colors.accent, shadowColor: theme.colors.shadow }]}
-      >
-        <Icon name="plus" size={25} color={theme.colors.textOnAccent} strokeWidth={2.5} />
-      </Pressable>
-    </Animated.View>
-  );
-}
-
 const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.huge,
@@ -399,20 +361,5 @@ const styles = StyleSheet.create({
   surpriseBody: {
     flex: 1,
     gap: 2,
-  },
-  fabWrap: {
-    position: 'absolute',
-    right: screenPadding,
-  },
-  fab: {
-    width: 58,
-    height: 58,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
   },
 });

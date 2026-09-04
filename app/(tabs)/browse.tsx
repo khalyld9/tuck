@@ -5,12 +5,13 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/ui/Chip';
+import { tabBarClearanceFor } from '@/components/navigation/metrics';
 import { Icon } from '@/components/ui/Icon';
 import { Pressable } from '@/components/ui/Pressable';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
-import { elevation, radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
+import { elevation, radius, screenPadding, spacing } from '@/constants/tokens';
 import { tagsRepo } from '@/db/repositories';
 import type { CategoryTone } from '@/constants/theme';
 import { HeroHeader } from '@/components/ui/HeroHeader';
@@ -57,7 +58,7 @@ export default function BrowseScreen() {
           styles.content,
           {
             // The hero panel absorbs the top inset itself.
-            paddingBottom: insets.bottom + tabBarClearance + spacing.xl,
+            paddingBottom: tabBarClearanceFor(insets.bottom),
           },
         ]}
         showsVerticalScrollIndicator={false}
