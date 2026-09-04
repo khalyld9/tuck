@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { memo, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { cardMetrics, radius, spacing } from '@/constants/tokens';
+import { cardMetrics, elevation, radius, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { isPast, relativeTime } from '@/lib/datetime';
 import { getDomain } from '@/lib/url';
@@ -54,9 +54,13 @@ export const ItemCard = memo(
         }`}
         style={[
           styles.card,
+          // Depth instead of a hairline: the reference's cards are separated
+          // from the page by light, not by a drawn edge. The border is kept
+          // only in dark mode, where a shadow on near-black is invisible.
+          elevation(1, theme.colors.shadow, theme.dark),
           {
             backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.border,
+            borderColor: theme.dark ? theme.colors.border : 'transparent',
           },
         ]}
       >

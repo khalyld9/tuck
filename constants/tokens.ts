@@ -237,4 +237,4 @@ export const noWebOutline = { outlineStyle: 'none' } as unknown as TextStyle;
  * scrollable tab screen adds this to its bottom inset so the last row can
  * always clear the bar.
  */
-export const tabBarClearance = 72 + spacing.md + spacing.md;
+export const tabBarClearance = 74 + spacing.md + spacing.md;

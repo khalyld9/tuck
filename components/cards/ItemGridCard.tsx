@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { memo, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { cardMetrics, radius, spacing } from '@/constants/tokens';
+import { cardMetrics, elevation, radius, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { relativeTime } from '@/lib/datetime';
 import { getDomain } from '@/lib/url';
@@ -49,10 +49,12 @@ export const ItemGridCard = memo(
         )}.${item.isFavorite ? ' Favourite.' : ''}`}
         style={[
           styles.card,
+          // Matches ItemCard: lifted by light in the day, edged in the dark.
+          elevation(1, theme.colors.shadow, theme.dark),
           {
             width,
             backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.border,
+            borderColor: theme.dark ? theme.colors.border : 'transparent',
           },
         ]}
       >

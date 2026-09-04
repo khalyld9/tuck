@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { minTouchTarget, radius, spacing } from '@/constants/tokens';
+import { elevation, minTouchTarget, radius, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 
 import { Icon, type IconName } from './Icon';
@@ -50,9 +50,11 @@ export const Button = memo(function Button({
       border: 'transparent',
     },
     secondary: {
-      background: theme.colors.surfaceSunken,
+      // Warm beige rather than a grey wash, so a secondary action still
+      // belongs to the same family as the primary one.
+      background: theme.colors.accentGlow,
       text: theme.colors.text,
-      border: theme.colors.border,
+      border: 'transparent',
     },
     ghost: {
       background: 'transparent',
@@ -69,7 +71,7 @@ export const Button = memo(function Button({
   const sizing = {
     sm: { paddingV: spacing.sm, paddingH: spacing.md, gap: spacing.xs, icon: 15, minH: 36 },
     md: { paddingV: spacing.md, paddingH: spacing.lg, gap: spacing.sm, icon: 17, minH: minTouchTarget },
-    lg: { paddingV: spacing.lg, paddingH: spacing.xl, gap: spacing.sm, icon: 19, minH: 54 },
+      lg: { paddingV: spacing.lg, paddingH: spacing.xl, gap: spacing.sm, icon: 19, minH: 56 },
   }[size];
 
   const iconNode = icon ? <Icon name={icon} size={sizing.icon} color={palette.text} /> : null;
@@ -88,12 +90,17 @@ export const Button = memo(function Button({
         {
           backgroundColor: palette.background,
           borderColor: palette.border,
-          borderWidth: variant === 'secondary' ? StyleSheet.hairlineWidth : 0,
+          borderWidth: 0,
           paddingVertical: sizing.paddingV,
           paddingHorizontal: sizing.paddingH,
           minHeight: sizing.minH,
           gap: sizing.gap,
         },
+        // Only the primary action lifts. Giving every button a shadow
+        // flattens the hierarchy the shadow is meant to express.
+        variant === 'primary' && !disabled
+          ? elevation(2, theme.colors.accent, theme.dark)
+          : undefined,
         fullWidth ? styles.fullWidth : undefined,
         style,
       ]}

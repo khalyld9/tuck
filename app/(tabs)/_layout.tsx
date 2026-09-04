@@ -7,9 +7,26 @@ import { elevation, radius, spacing, typography } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { haptics } from '@/lib/haptics';
 
-function TabIcon({ name, color, focused }: { name: IconName; color: ColorValue; focused: boolean }) {
+function TabIcon({
+  name,
+  color,
+  focused,
+  activeBackground,
+}: {
+  name: IconName;
+  color: ColorValue;
+  focused: boolean;
+  activeBackground: string;
+}) {
   return (
-    <View style={styles.iconWrap}>
+    <View
+      style={[
+        styles.iconWrap,
+        // A soft brown pill behind the active icon. Shape carries the state
+        // alongside the tint and the fill, so it survives greyscale.
+        focused && { backgroundColor: activeBackground },
+      ]}
+    >
       <Icon
         name={name}
         size={21}
@@ -44,14 +61,16 @@ export default function TabsLayout() {
           left: spacing.md,
           right: spacing.md,
           bottom: Math.max(insets.bottom, spacing.md),
-          // 10 pad + 22 icon + 3 gap + 13 label + 10 pad, rounded up.
-          height: 72,
+          // 8 pad + 30 icon pill + 2 gap + 14 label line + 10 pad = 64, plus
+          // headroom so a scaled label is never clipped.
+          // Keep in sync with `tabBarClearance` in constants/tokens.ts.
+          height: 74,
           borderRadius: radius.xl,
           backgroundColor: theme.colors.surfaceElevated,
           borderTopWidth: 0,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: theme.colors.border,
-          paddingTop: 10,
+          paddingTop: 8,
           paddingBottom: 10,
           paddingHorizontal: spacing.xs,
           ...elevation(2, theme.colors.shadow, theme.dark),
@@ -60,7 +79,7 @@ export default function TabsLayout() {
           ...typography.overline,
           fontSize: 10,
           letterSpacing: 0.2,
-          marginTop: 3,
+          marginTop: 2,
         },
         tabBarItemStyle: {
           paddingVertical: 0,
@@ -77,7 +96,12 @@ export default function TabsLayout() {
           title: 'Home',
           tabBarAccessibilityLabel: 'Home tab',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="house" color={color} focused={focused} />
+            <TabIcon
+              name="house"
+              color={color}
+              focused={focused}
+              activeBackground={theme.colors.accentSoft}
+            />
           ),
         }}
       />
@@ -87,7 +111,12 @@ export default function TabsLayout() {
           title: 'Browse',
           tabBarAccessibilityLabel: 'Browse categories tab',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="layout-grid" color={color} focused={focused} />
+            <TabIcon
+              name="layout-grid"
+              color={color}
+              focused={focused}
+              activeBackground={theme.colors.accentSoft}
+            />
           ),
         }}
       />
@@ -97,7 +126,12 @@ export default function TabsLayout() {
           title: 'Saved',
           tabBarAccessibilityLabel: 'Saved library tab',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="bookmark" color={color} focused={focused} />
+            <TabIcon
+              name="bookmark"
+              color={color}
+              focused={focused}
+              activeBackground={theme.colors.accentSoft}
+            />
           ),
         }}
       />
@@ -107,7 +141,12 @@ export default function TabsLayout() {
           title: 'Settings',
           tabBarAccessibilityLabel: 'Settings tab',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="settings" color={color} focused={focused} />
+            <TabIcon
+              name="settings"
+              color={color}
+              focused={focused}
+              activeBackground={theme.colors.accentSoft}
+            />
           ),
         }}
       />
@@ -119,6 +158,10 @@ const styles = StyleSheet.create({
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 22,
+    // Fixed size whether or not the pill is drawn, so the row never shifts
+    // when the selection moves.
+    height: 30,
+    width: 46,
+    borderRadius: radius.pill,
   },
 });

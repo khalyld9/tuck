@@ -133,7 +133,10 @@ export const SearchField = memo(
           style={[
             styles.container,
             {
-              backgroundColor: theme.colors.surface,
+              // `surfaceElevated` matters in dark mode, where plain `surface`
+              // is the same tone as the hero panel and the field would vanish
+              // into it. In light mode the two are identical.
+              backgroundColor: elevated ? theme.colors.surfaceElevated : theme.colors.surface,
               borderColor: elevated ? 'transparent' : theme.colors.border,
             },
             elevated && elevation(2, theme.colors.shadow, theme.dark),
