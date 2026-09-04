@@ -5,6 +5,8 @@ import { Linking, Platform, Pressable as RNPressable, StyleSheet, View } from 'r
 import Animated, {
   FadeIn,
   FadeOut,
+  SlideInDown,
+  SlideOutDown,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -184,18 +186,22 @@ export default function SurpriseScreen() {
       />
 
       <View
-        style={[styles.host, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
+        style={[styles.host, { paddingTop: insets.top }]}
         pointerEvents="box-none"
       >
         {phase === 'empty' ? (
           <Animated.View
-            entering={FadeIn.duration(motion.base)}
+            entering={SlideInDown.springify().damping(26).stiffness(260)}
             style={[
               styles.card,
-              { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border },
+              {
+                backgroundColor: theme.colors.surfaceElevated,
+                paddingBottom: Math.max(insets.bottom, spacing.xl),
+              },
               elevation(3, theme.colors.shadow, theme.dark),
             ]}
           >
+            <View style={[styles.grabber, { backgroundColor: theme.colors.borderStrong }]} />
             <EmptyState
               pose="empty"
               title="Nothing to pull out yet."
@@ -207,15 +213,20 @@ export default function SurpriseScreen() {
           </Animated.View>
         ) : (
           <Animated.View
-            entering={FadeIn.duration(motion.base)}
-            exiting={FadeOut.duration(motion.fast)}
+            entering={SlideInDown.springify().damping(26).stiffness(260)}
+            exiting={SlideOutDown.duration(motion.fast)}
             style={[
               styles.card,
               cardStyle,
-              { backgroundColor: theme.colors.surfaceElevated, borderColor: theme.colors.border },
+              {
+                backgroundColor: theme.colors.surfaceElevated,
+                paddingBottom: Math.max(insets.bottom, spacing.xl),
+              },
               elevation(3, theme.colors.shadow, theme.dark),
             ]}
           >
+            <View style={[styles.grabber, { backgroundColor: theme.colors.borderStrong }]} />
+
             {/* Header */}
             <View style={styles.cardHeader}>
               <View style={styles.eyebrow}>
@@ -319,14 +330,23 @@ const styles = StyleSheet.create({
   },
   host: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: screenPadding,
+    // A sheet rises from the bottom edge; a centred panel is a web modal.
+    justifyContent: 'flex-end',
   },
   card: {
-    borderRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.xl,
+    borderTopLeftRadius: radius.xxl,
+    borderTopRightRadius: radius.xxl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl,
     gap: spacing.md,
+  },
+  grabber: {
+    width: 36,
+    height: 5,
+    borderRadius: radius.pill,
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
   },
   cardHeader: {
     flexDirection: 'row',

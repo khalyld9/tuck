@@ -1,8 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ItemCard } from '@/components/cards/ItemCard';
+import { InsetGroup, thumbSeparatorInset } from '@/components/ios/InsetGroup';
 import { ItemList } from '@/components/lists/ItemList';
 import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -41,6 +43,10 @@ export default function SearchScreen() {
     tag,
     sort: 'recent',
   });
+
+  // Before anything is typed the screen would otherwise be blank. iOS search
+  // fills that space with what you'd most likely be reaching for.
+  const { items: recentItems } = useItemQuery({ scope: 'active', sort: 'recent', limit: 5 });
 
   useEffect(() => {
     // Skip the autofocus when arriving from a tag tap — the results are the point.
@@ -98,22 +104,50 @@ export default function SearchScreen() {
         </View>
       ) : null}
 
-      {/* Tag suggestions before anything has been typed */}
-      {!hasQuery && recentTags.length > 0 ? (
-        <View style={styles.suggestions}>
-          <Text variant="overline" color="subtle" uppercase style={styles.suggestionsLabel}>
-            Jump to a tag
-          </Text>
-          <View style={styles.tagCloud}>
-            {recentTags.map((name) => (
-              <Chip key={name} label={name} icon="hash" size="sm" onPress={() => setTag(name)} />
-            ))}
-          </View>
-        </View>
+      {/* Suggestions before anything has been typed */}
+      {!hasQuery ? (
+        <ScrollView
+          contentContainerStyle={styles.suggestionsContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {recentTags.length > 0 ? (
+            <View style={styles.suggestions}>
+              <Text variant="footnote" color="subtle" style={styles.suggestionsLabel}>
+                TAGS
+              </Text>
+              <View style={styles.tagCloud}>
+                {recentTags.map((name) => (
+                  <Chip
+                    key={name}
+                    label={name}
+                    icon="hash"
+                    size="sm"
+                    onPress={() => setTag(name)}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {recentItems.length > 0 ? (
+            <View style={styles.recents}>
+              <Text variant="footnote" color="subtle" style={styles.groupLabel}>
+                RECENTLY TUCKED
+              </Text>
+              <InsetGroup separatorInset={thumbSeparatorInset}>
+                {recentItems.map((item) => (
+                  <ItemCard key={item.id} item={item} onPress={openDetail} inset />
+                ))}
+              </InsetGroup>
+            </View>
+          ) : null}
+        </ScrollView>
       ) : null}
 
+      {hasQuery ? (
       <ItemList
-        items={hasQuery ? items : []}
+        items={items}
         viewMode={viewMode}
         onPressItem={openDetail}
         onFavorite={toggleFavorite}
@@ -131,6 +165,7 @@ export default function SearchScreen() {
           ) : null
         }
       />
+      ) : null}
     </Screen>
   );
 }
@@ -159,7 +194,22 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   suggestionsLabel: {
+    marginLeft: spacing.xs,
     marginBottom: spacing.xs,
+    letterSpacing: 0.4,
+  },
+  suggestionsContent: {
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.huge,
+  },
+  recents: {
+    paddingBottom: spacing.lg,
+  },
+  /** Aligned to the inset group's gutter rather than the screen edge. */
+  groupLabel: {
+    marginLeft: screenPadding + spacing.xs,
+    marginBottom: spacing.xs,
+    letterSpacing: 0.4,
   },
   tagCloud: {
     flexDirection: 'row',
