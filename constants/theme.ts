@@ -187,8 +187,8 @@ export const darkTheme: Theme = {
 
     // Dark mode already sits on near-black, so the hero panel lifts *up*
     // instead of down — a raised warm slab rather than a deep one.
-    heroSurface: palette.bark,
-    heroSurfaceAlt: palette.loam,
+    heroSurface: palette.cacaoDark,
+    heroSurfaceAlt: palette.cacaoDarkTint,
     heroText: palette.chalkBright,
     heroTextMuted: 'rgba(246, 241, 234, 0.66)',
 

@@ -97,6 +97,27 @@ tucking — tied to real states, and stays out of the way otherwise.
 
 ## Things that were deliberate
 
+**The type is the platform's.** On iOS the app asks for `SF Pro Display` for
+large titles and `SF Pro Text` for everything else, so headings get Apple's
+optical sizing and tight tracking for free and nothing is bundled or licensed.
+Android and web load four cuts of Inter, the closest widely-available
+neo-grotesque. Because those cuts are separate files each registered at
+`normal` weight, `components/ui/Text.tsx` strips the numeric `fontWeight` on
+those platforms — leaving it set makes the engine synthesise a second bolding
+over an already-bold face and the glyphs smear.
+
+**The masthead is a layer, not a band.** `HeroHeader` paints a deep brown slab
+that runs under the status bar and curves in at the bottom, then lets one card
+hang off that edge — search on Home, the collection tiles on Browse. The
+overlap is the whole point: a coloured rectangle with content stacked beneath
+it reads as a web banner, while a card crossing the boundary reads as depth.
+The component owns the top safe-area inset for that reason, so screens using
+it must not add `insets.top` themselves.
+
+**Cards are separated by light, not lines.** In light mode they carry a wide,
+low-opacity, warm-tinted shadow and no border. Dark mode keeps the hairline
+instead, because a shadow on near-black is invisible.
+
 **Swipes are hard to trigger by accident.** A row must travel 96pt, the action
 fires on release rather than on crossing the line, and both directions are
 reversible: left archives, right favourites. Permanent deletion is never

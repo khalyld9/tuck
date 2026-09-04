@@ -52,6 +52,14 @@ export const palette = {
   cacao: '#4A3226',
   cacaoDeep: '#3A271D',
   cacaoTint: '#5E4234',
+  /**
+   * Dark-mode hero. Dark mode already sits on near-black, so the panel has to
+   * lift *up* to separate; `bark` was too close to the page and the masthead
+   * read as a faint smudge. This is a warmer, lighter brown that still keeps
+   * cream text far past AA.
+   */
+  cacaoDark: '#3B302A',
+  cacaoDarkTint: '#4C3F37',
 
   // ── Clay accent (brand) ──────────────────────────────────────────────────
   /**
