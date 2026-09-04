@@ -146,6 +146,9 @@ export default function CategoryScreen() {
 const styles = StyleSheet.create({
   header: {
     paddingBottom: spacing.lg,
+    // The list applies the horizontal gutter; the header's children each
+    // supply their own, so this bleeds back out to the screen edges.
+    marginHorizontal: -screenPadding,
   },
   icon: {
     width: 34,

@@ -89,12 +89,6 @@ export function pickNote(pulse: LibraryPulse, activeCount: number): MascotNote |
 export interface MascotNoteCardProps {
   note: MascotNote;
   onPress?: () => void;
-  /**
-   * Renders for placement on the hero panel: the bubble becomes a lifted
-   * inset well instead of a bordered card, because a light-bordered bubble
-   * disappears against a deep surface.
-   */
-  onHero?: boolean;
 }
 
 /**
@@ -107,16 +101,15 @@ export interface MascotNoteCardProps {
 export const MascotNoteCard = memo(function MascotNoteCard({
   note,
   onPress,
-  onHero,
 }: MascotNoteCardProps) {
   const theme = useTheme();
 
-  const bubbleFill = onHero ? theme.colors.heroSurfaceAlt : theme.colors.surface;
-  const bubbleBorder = onHero ? 'transparent' : theme.colors.border;
+  const bubbleFill = theme.colors.surface;
+  const bubbleBorder = 'transparent';
 
   const body = (
     <>
-      <Mascot pose={note.pose} size={onHero ? 60 : 54} idle accessibilityLabel="" />
+      <Mascot pose={note.pose} size={54} idle accessibilityLabel="" />
 
       <View style={styles.bubbleWrap}>
         {/* Little tail pointing back at the mascot. */}
@@ -124,10 +117,7 @@ export const MascotNoteCard = memo(function MascotNoteCard({
           style={[styles.tail, { backgroundColor: bubbleFill, borderColor: bubbleBorder }]}
         />
         <View style={[styles.bubble, { backgroundColor: bubbleFill, borderColor: bubbleBorder }]}>
-          <Text
-            variant="callout"
-            style={[styles.message, onHero ? { color: theme.colors.heroText } : null]}
-          >
+          <Text variant="callout" style={styles.message}>
             {note.message}
           </Text>
         </View>

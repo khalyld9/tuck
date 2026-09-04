@@ -162,7 +162,7 @@ export default function SavedScreen() {
       search,
       sort,
       theme.colors.favorite,
-      theme.colors.heroText,
+      theme.colors.accent,
       viewMode,
     ]
   );
@@ -235,9 +235,9 @@ export default function SavedScreen() {
 const styles = StyleSheet.create({
   header: {
     paddingBottom: spacing.lg,
-    // The list applies the horizontal gutter; the rail needs to bleed past it.
+    // The list applies the horizontal gutter; the header's children each
+    // supply their own, so this bleeds back out to the screen edges.
     marginHorizontal: -screenPadding,
-    paddingHorizontal: screenPadding,
   },
   actions: {
     flexDirection: 'row',
@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
   },
   rail: {
-    marginHorizontal: -screenPadding,
     marginTop: spacing.lg,
   },
   resultCount: {
     marginTop: spacing.md,
+    marginHorizontal: screenPadding,
   },
 });

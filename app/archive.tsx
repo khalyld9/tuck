@@ -9,7 +9,7 @@ import { NavBar } from '@/components/ios/NavBar';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { spacing } from '@/constants/tokens';
+import { screenPadding, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useItemQuery } from '@/hooks/useItemQuery';
@@ -94,7 +94,7 @@ export default function ArchiveScreen() {
         ) : null}
       </View>
     ),
-    [items.length, handleBack, handleClear, theme.colors.heroText]
+    [items.length, handleClear, theme.colors.danger]
   );
 
   return (
@@ -129,8 +129,12 @@ export default function ArchiveScreen() {
 const styles = StyleSheet.create({
   hint: {
     marginTop: spacing.md,
+    marginHorizontal: screenPadding,
   },
   header: {
     paddingBottom: spacing.lg,
+    // The list applies the horizontal gutter; the header's children each
+    // supply their own, so this bleeds back out to the screen edges.
+    marginHorizontal: -screenPadding,
   },
 });

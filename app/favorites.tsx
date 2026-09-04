@@ -8,7 +8,7 @@ import { NavBar } from '@/components/ios/NavBar';
 import { LargeTitleHeader } from '@/components/ios/LargeTitleHeader';
 import { IconButton } from '@/components/ui/IconButton';
 import { Screen } from '@/components/ui/Screen';
-import { spacing } from '@/constants/tokens';
+import { screenPadding, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
 import { useItemActions } from '@/hooks/useItemActions';
 import { useItemQuery } from '@/hooks/useItemQuery';
@@ -61,7 +61,7 @@ export default function FavoritesScreen() {
         />
       </View>
     ),
-    [items.length, handleBack, handleToggleView, viewMode, theme.colors.heroText]
+    [items.length, handleToggleView, viewMode, theme.colors.accent]
   );
 
   return (
@@ -95,5 +95,8 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   header: {
     paddingBottom: spacing.lg,
+    // The list applies the horizontal gutter; the header's children each
+    // supply their own, so this bleeds back out to the screen edges.
+    marginHorizontal: -screenPadding,
   },
 });
