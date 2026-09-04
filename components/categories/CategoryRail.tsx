@@ -57,7 +57,7 @@ export const CategoryRail = memo(function CategoryRail({
           count={allCount}
           selected={!selectedId}
           onPress={handleSelect(null)}
-          tone={{ fg: theme.colors.accent, bg: theme.colors.accentSoft }}
+          tone={theme.tones.clay}
         />
       ) : null}
 

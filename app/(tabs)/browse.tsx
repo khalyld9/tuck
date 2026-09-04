@@ -12,6 +12,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Text } from '@/components/ui/Text';
 import { radius, screenPadding, spacing, tabBarClearance } from '@/constants/tokens';
 import { tagsRepo } from '@/db/repositories';
+import type { CategoryTone } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { useCategoriesStore } from '@/store/useCategoriesStore';
 import { selectCounts, selectRevision, useItemsStore } from '@/store/useItemsStore';
@@ -76,7 +77,7 @@ export default function BrowseScreen() {
               icon="heart"
               label="Favourites"
               count={counts.favorites}
-              tone={{ fg: theme.colors.favorite, bg: theme.tones.rose.bg }}
+              tone={theme.tones.rose}
               onPress={() => router.push('/favorites')}
             />
             <CollectionTile
@@ -147,6 +148,12 @@ export default function BrowseScreen() {
   );
 }
 
+/**
+ * Favourites and Archive, as tonal blocks.
+ *
+ * Same treatment as the category tiles below so the whole screen reads as
+ * one colour-coded surface rather than two competing card styles.
+ */
 function CollectionTile({
   icon,
   label,
@@ -157,11 +164,9 @@ function CollectionTile({
   icon: 'heart' | 'archive';
   label: string;
   count: number;
-  tone: { fg: string; bg: string };
+  tone: CategoryTone;
   onPress: () => void;
 }) {
-  const theme = useTheme();
-
   return (
     <Pressable
       onPress={onPress}
@@ -169,24 +174,24 @@ function CollectionTile({
       pressScale={0.97}
       accessibilityRole="button"
       accessibilityLabel={`${label}, ${count} item${count === 1 ? '' : 's'}`}
-      style={[
-        styles.tile,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
-      ]}
+      style={[styles.tile, { backgroundColor: tone.bg }]}
     >
-      <View style={[styles.tileIcon, { backgroundColor: tone.bg }]}>
-        <Icon
-          name={icon}
-          size={19}
-          color={tone.fg}
-          strokeWidth={2}
-          fill={icon === 'heart' ? tone.fg : 'none'}
-        />
+      <Icon
+        name={icon}
+        size={20}
+        color={tone.fg}
+        strokeWidth={2}
+        fill={icon === 'heart' ? tone.fg : 'none'}
+      />
+
+      <View style={styles.tileText}>
+        <Text variant="headline" style={{ color: tone.ink }}>
+          {label}
+        </Text>
+        <Text variant="label" style={{ color: tone.ink, opacity: 0.8 }}>
+          {count} item{count === 1 ? '' : 's'}
+        </Text>
       </View>
-      <Text variant="headline">{label}</Text>
-      <Text variant="label" color="subtle">
-        {count} item{count === 1 ? '' : 's'}
-      </Text>
     </Pressable>
   );
 }
@@ -222,10 +227,10 @@ function CategoryTile({
       <Icon name={category.icon} size={20} color={tone.fg} strokeWidth={2} />
 
       <View style={styles.categoryTileText}>
-        <Text variant="footnote" numberOfLines={1} style={{ color: tone.fg }}>
+        <Text variant="footnote" numberOfLines={1} style={{ color: tone.ink }}>
           {category.name}
         </Text>
-        <Text variant="title3" style={{ color: tone.fg }}>
+        <Text variant="title3" style={{ color: tone.ink }}>
           {category.itemCount}
         </Text>
       </View>
@@ -255,18 +260,15 @@ const styles = StyleSheet.create({
   },
   tile: {
     flex: 1,
-    gap: spacing.xs,
-    padding: spacing.lg,
+    // Matches the category tiles' internal rhythm: glyph up top, text at the
+    // bottom, with the space between doing the work.
+    height: 104,
+    padding: spacing.md,
     borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'space-between',
   },
-  tileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
+  tileText: {
+    gap: 1,
   },
   categoryGrid: {
     flexDirection: 'row',

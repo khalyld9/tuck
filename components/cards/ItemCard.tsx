@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { cardMetrics, radius, spacing } from '@/constants/tokens';
 import { useTheme } from '@/hooks/useTheme';
-import { relativeTime } from '@/lib/datetime';
+import { isPast, relativeTime } from '@/lib/datetime';
 import { getDomain } from '@/lib/url';
 import { useCategoriesStore } from '@/store/useCategoriesStore';
 import type { SavedItem } from '@/types/models';
@@ -32,6 +32,7 @@ export const ItemCard = memo(
     const category = useCategoriesStore((state) => state.byId[item.categoryId]);
     const tone = theme.tones[category?.tone ?? 'neutral'];
     const domain = getDomain(item.url);
+    const overdue = isPast(item.reminderAt);
 
     const handlePress = useCallback(() => onPress(item), [item, onPress]);
     const handleLongPress = useCallback(() => onLongPress?.(item), [item, onLongPress]);
@@ -48,7 +49,9 @@ export const ItemCard = memo(
         accessibilityLabel={item.title}
         accessibilityHint={`${category?.name ?? 'Other'}${
           domain ? `, ${domain}` : ''
-        }. Tucked ${relativeTime(item.createdAt)}.${item.isFavorite ? ' Favourite.' : ''}`}
+        }. Tucked ${relativeTime(item.createdAt)}.${overdue ? ' Reminder overdue.' : ''}${
+          item.isFavorite ? ' Favourite.' : ''
+        }`}
         style={[
           styles.card,
           {
@@ -98,7 +101,18 @@ export const ItemCard = memo(
         {/* Status badges. Reminder first, then favourite. */}
         <View style={styles.badges}>
           {item.reminderAt ? (
-            <Icon name="bell" size={14} color={theme.colors.reminder} strokeWidth={2.2} />
+            overdue ? (
+              // A missed reminder is worth interrupting for, so it gets a
+              // labelled pill rather than another small glyph. The word
+              // carries the meaning; the colour only reinforces it.
+              <View style={[styles.duePill, { backgroundColor: theme.colors.dangerSoft }]}>
+                <Text variant="caption" style={{ color: theme.colors.danger }}>
+                  Due
+                </Text>
+              </View>
+            ) : (
+              <Icon name="bell" size={14} color={theme.colors.reminder} strokeWidth={2.2} />
+            )
           ) : null}
           {item.isFavorite ? (
             <Icon
@@ -174,6 +188,11 @@ const styles = StyleSheet.create({
     height: 2.5,
     borderRadius: 2,
     opacity: 0.6,
+  },
+  duePill: {
+    paddingHorizontal: spacing.sm - 1,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
   },
   badges: {
     flexShrink: 0,

@@ -69,10 +69,16 @@ export interface ThemeColors {
 }
 
 export interface CategoryTone {
-  /** Icon / text colour. */
+  /** Icon and stroke colour. Not bound by text contrast rules. */
   fg: string;
-  /** Chip background. */
+  /** Chip and tile background. */
   bg: string;
+  /**
+   * Text colour for labels sitting on `bg`. Darker than `fg` in light mode so
+   * coloured type clears WCAG AA (4.5:1); identical to `fg` in dark mode,
+   * where the lighter hue already passes against a deep background.
+   */
+  ink: string;
 }
 
 export type CategoryToneName = 'clay' | 'sage' | 'plum' | 'ocean' | 'amber' | 'rose' | 'neutral';
@@ -101,8 +107,8 @@ export const lightTheme: Theme = {
     borderStrong: 'rgba(42, 37, 33, 0.16)',
 
     text: palette.ink,
-    textMuted: palette.stone,
-    textSubtle: palette.taupe,
+    textMuted: palette.stoneText,
+    textSubtle: palette.taupeText,
     textOnAccent: palette.white,
 
     accent: palette.clay,
@@ -126,13 +132,13 @@ export const lightTheme: Theme = {
     shadow: 'rgba(58, 44, 32, 1)',
   },
   tones: {
-    clay: { fg: palette.clayDeep, bg: palette.claySoft },
-    sage: { fg: palette.sage, bg: palette.sageSoft },
-    plum: { fg: palette.plum, bg: palette.plumSoft },
-    ocean: { fg: palette.ocean, bg: palette.oceanSoft },
-    amber: { fg: '#9C7526', bg: palette.amberSoft },
-    rose: { fg: palette.rose, bg: palette.roseSoft },
-    neutral: { fg: palette.slate, bg: palette.sand },
+    clay: { fg: palette.clayDeep, bg: palette.claySoft, ink: palette.clayInk },
+    sage: { fg: palette.sage, bg: palette.sageSoft, ink: palette.sageInk },
+    plum: { fg: palette.plum, bg: palette.plumSoft, ink: palette.plumInk },
+    ocean: { fg: palette.ocean, bg: palette.oceanSoft, ink: palette.oceanInk },
+    amber: { fg: '#9C7526', bg: palette.amberSoft, ink: palette.amberInk },
+    rose: { fg: palette.rose, bg: palette.roseSoft, ink: palette.roseInk },
+    neutral: { fg: palette.slate, bg: palette.sand, ink: palette.slate },
   },
 };
 
@@ -151,8 +157,8 @@ export const darkTheme: Theme = {
     borderStrong: 'rgba(232, 224, 214, 0.18)',
 
     text: palette.chalkBright,
-    textMuted: palette.smoke,
-    textSubtle: palette.ash,
+    textMuted: palette.smokeText,
+    textSubtle: palette.ashText,
     textOnAccent: '#22150C',
 
     accent: palette.clayBright,
@@ -175,14 +181,16 @@ export const darkTheme: Theme = {
 
     shadow: 'rgba(0, 0, 0, 1)',
   },
+  // In dark mode the bright hues already clear AA on their deep backgrounds,
+  // so text and icons can share one colour.
   tones: {
-    clay: { fg: palette.clayBright, bg: palette.clayDim },
-    sage: { fg: palette.sageBright, bg: palette.sageDim },
-    plum: { fg: palette.plumBright, bg: palette.plumDim },
-    ocean: { fg: palette.oceanBright, bg: palette.oceanDim },
-    amber: { fg: palette.amberBright, bg: palette.amberDim },
-    rose: { fg: palette.roseBright, bg: palette.roseDim },
-    neutral: { fg: palette.smoke, bg: palette.loam },
+    clay: { fg: palette.clayBright, bg: palette.clayDim, ink: palette.clayBright },
+    sage: { fg: palette.sageBright, bg: palette.sageDim, ink: palette.sageBright },
+    plum: { fg: palette.plumBright, bg: palette.plumDim, ink: palette.plumBright },
+    ocean: { fg: palette.oceanBright, bg: palette.oceanDim, ink: palette.oceanBright },
+    amber: { fg: palette.amberBright, bg: palette.amberDim, ink: palette.amberBright },
+    rose: { fg: palette.roseBright, bg: palette.roseDim, ink: palette.roseBright },
+    neutral: { fg: palette.smoke, bg: palette.loam, ink: palette.smoke },
   },
 };
 

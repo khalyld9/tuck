@@ -131,9 +131,17 @@ export async function seedDemoData(): Promise<SeedResult> {
   for (const [index, sample] of SAMPLES.entries()) {
     const { ageMs, ...input } = sample;
 
-    // Give the first two items real, near-future reminders.
+    // Three reminders covering the states the UI has to render: imminent,
+    // a day out, and one already missed. Without the overdue case the
+    // "Due" pill and the danger styling never appear in development.
     const reminderAt =
-      index === 0 ? now + 3 * HOUR : index === 1 ? now + DAY + 2 * HOUR : null;
+      index === 0
+        ? now + 3 * HOUR
+        : index === 1
+          ? now + DAY + 2 * HOUR
+          : index === 4
+            ? now - 2 * DAY
+            : null;
 
     const item = await itemsRepo.createItem({ ...input, reminderAt });
 

@@ -10,7 +10,9 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test:import": "node scripts/test-import.js"
+    "test:import": "node scripts/test-import.js",
+    "test:contrast": "node scripts/test-contrast.js",
+    "test": "node scripts/test-import.js && node scripts/test-contrast.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.15",

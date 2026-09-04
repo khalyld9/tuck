@@ -32,7 +32,7 @@ export async function configureNotifications(): Promise<void> {
       name: 'Reminders',
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 180],
-      lightColor: '#C4703A',
+      lightColor: '#A85C2C',
       sound: null,
       showBadge: false,
     }).catch(() => undefined);

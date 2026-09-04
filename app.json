@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "backgroundColor": "#FAF6F0",
-    "primaryColor": "#C4703A",
+    "primaryColor": "#A85C2C",
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
@@ -80,7 +80,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#C4703A",
+          "color": "#A85C2C",
           "defaultChannel": "reminders"
         }
       ],

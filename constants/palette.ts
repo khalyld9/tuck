@@ -16,8 +16,15 @@ export const palette = {
   oat: '#F4EDE3',
   sand: '#EBE1D4',
   fawn: '#DED2C2',
+  /**
+   * `taupe` and `stone` are surface and border tints. For *text* use
+   * `stoneText` / `taupeText`, which are the same warm greys darkened until
+   * they clear WCAG AA on the lightest surface — see scripts/test-contrast.js.
+   */
   taupe: '#B9AB99',
   stone: '#8C8073',
+  stoneText: '#6E6459',
+  taupeText: '#7C7266',
   slate: '#5C544B',
   ink: '#2A2521',
   inkDeep: '#1A1613',
@@ -30,16 +37,38 @@ export const palette = {
   driftwood: '#463D36',
   ash: '#7A6F65',
   smoke: '#A2968A',
+  /** Dark-mode text greys, both AA on espresso and bark. */
+  smokeText: '#B5A99C',
+  ashText: '#968B80',
   chalk: '#E8E0D6',
   chalkBright: '#F6F1EA',
 
   // ── Clay accent (brand) ──────────────────────────────────────────────────
-  clay: '#C4703A',
-  clayDeep: '#A85C2C',
+  /**
+   * `clay` is the brand fill — buttons, the FAB, the active tab. It is the
+   * darkest terracotta that still carries white text at AA (4.96:1); the
+   * lighter #C4703A it replaced only managed 3.67:1.
+   */
+  clay: '#A85C2C',
+  clayDeep: '#8F4D25',
   clayBright: '#E08A4E',
   claySoft: '#F5E2D2',
   clayGlow: '#FBEFE4',
   clayDim: '#3A2317',
+
+  /**
+   * "Ink" variants: the same hue darkened until it clears WCAG AA (4.5:1) on
+   * its own Soft background. Used wherever coloured text sits on a tonal
+   * fill — category tiles, chips — so the palette stays warm without making
+   * labels hard to read. The lighter values above remain correct for icons
+   * and strokes, which are exempt from text contrast rules.
+   */
+  clayInk: '#975328',
+  sageInk: '#586D54',
+  plumInk: '#795D7C',
+  oceanInk: '#466C79',
+  amberInk: '#856320',
+  roseInk: '#9B5051',
 
   // ── Secondary hues, deliberately muted ───────────────────────────────────
   sage: '#6F8A6A',
@@ -70,7 +99,7 @@ export const palette = {
   // ── Feedback ─────────────────────────────────────────────────────────────
   success: '#5B8C5A',
   successDark: '#7FAE7C',
-  danger: '#B3453E',
+  danger: '#A93F39',
   dangerDark: '#D9736B',
   warning: '#C08A2E',
   warningDark: '#DDAA53',

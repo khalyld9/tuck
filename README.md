@@ -19,8 +19,10 @@ Press `i` for the iOS simulator, `a` for Android, `w` for the browser.
 Two commands worth knowing:
 
 ```bash
-npm run typecheck    # tsc --noEmit, strict
-npm run test:import  # feeds the import parser malformed payloads
+npm run typecheck     # tsc --noEmit, strict
+npm test              # import parser + colour contrast
+npm run test:import   # feeds the import parser malformed payloads
+npm run test:contrast # asserts every text pairing clears WCAG AA
 ```
 
 There is no demo data in a fresh install. In a development build, Settings
@@ -116,6 +118,16 @@ file's when ids collide, tolerates a bare array of items, ISO-string dates and
 unknown categories, and rejects records with no id or title instead of
 inventing values. `npm run test:import` runs fifteen hostile payloads through
 the real parser and asserts nothing throws and nothing disappears.
+
+**Contrast is checked mechanically.** Category tiles, chips and badges set
+type in a hue on a tint of that same hue, which is the pairing that quietly
+fails an audit while looking fine. So each tone carries two foregrounds: `fg`
+for icons and strokes, which WCAG scores as graphical objects at 3:1, and
+`ink` for anything that is actually text. `npm run test:contrast` walks every
+tone and text colour in both themes and fails the build under 4.5:1. It caught
+six of seven light tones the first time it ran, along with white-on-terracotta
+buttons at 3.67:1 — the brand clay is now the darkest terracotta that carries
+white text at AA.
 
 **Share to Tuck.** The deep link `tuck://add?url=…&title=…` works today with
 no native code. Android additionally declares a real `ACTION_SEND text/plain`
