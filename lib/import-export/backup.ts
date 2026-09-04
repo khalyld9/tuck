@@ -37,8 +37,13 @@ export async function buildBackup(): Promise<BackupFile> {
     categoriesRepo.listCategories(),
   ]);
 
+  // Defensive: an export must never be the thing that throws, even if a row
+  // somehow reaches us without a tag array.
   const tagNames = new Set<string>();
-  for (const item of items) for (const tag of item.tags) tagNames.add(tag);
+  for (const item of items) {
+    if (!Array.isArray(item.tags)) continue;
+    for (const tag of item.tags) tagNames.add(tag);
+  }
 
   return {
     format: BACKUP_FORMAT,
