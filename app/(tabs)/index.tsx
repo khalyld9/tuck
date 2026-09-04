@@ -162,11 +162,12 @@ export default function HomeScreen() {
         {isEmpty ? (
           <Animated.View entering={FadeIn.duration(360).delay(120)} style={styles.emptyWrap}>
             <EmptyState
+              card
               pose="empty"
               title="Nothing tucked away yet."
               message="Save the things you want to come back to — a film, a place, a half-formed idea."
               actionLabel="Tuck something"
-              onAction={() => router.push('/add')}
+              onAction={() => setAddSheetOpen(true)}
               mascotLabel="Tuck sitting beside an empty pouch"
             />
           </Animated.View>
@@ -367,6 +368,7 @@ const styles = StyleSheet.create({
   },
   emptyWrap: {
     paddingTop: spacing.lg,
+    paddingHorizontal: screenPadding,
   },
   section: {
     marginBottom: spacing.xxl,

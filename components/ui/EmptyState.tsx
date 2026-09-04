@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { spacing } from '@/constants/tokens';
+import { elevation, radius, spacing } from '@/constants/tokens';
+import { useTheme } from '@/hooks/useTheme';
 import { Mascot, type MascotPose } from '@/components/mascot/Mascot';
 
 import { Button } from './Button';
@@ -16,6 +17,12 @@ export interface EmptyStateProps {
   size?: 'sm' | 'md' | 'lg';
   /** Screen-reader description of the illustration. */
   mascotLabel?: string;
+  /**
+   * Draws the state as a contained card rather than letting it float in the
+   * middle of the page. An empty screen should still look composed, not like
+   * the content failed to load.
+   */
+  card?: boolean;
 }
 
 /**
@@ -29,11 +36,20 @@ export const EmptyState = memo(function EmptyState({
   onAction,
   size = 'md',
   mascotLabel,
+  card,
 }: EmptyStateProps) {
+  const theme = useTheme();
   const mascotSize = { sm: 110, md: 158, lg: 196 }[size];
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        card && styles.card,
+        card && elevation(1, theme.colors.shadow, theme.dark),
+        card && { backgroundColor: theme.colors.surface },
+      ]}
+    >
       <Mascot pose={pose} size={mascotSize} accessibilityLabel={mascotLabel} />
 
       <View style={styles.copy}>
@@ -61,6 +77,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
     paddingVertical: spacing.xxl,
     gap: spacing.lg,
+  },
+  card: {
+    borderRadius: radius.xl,
+    paddingVertical: spacing.xxxl,
   },
   copy: {
     gap: spacing.sm,

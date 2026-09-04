@@ -174,6 +174,7 @@ export default function SavedScreen() {
     if (hasFilters) {
       return (
         <EmptyState
+          card
           pose="searching"
           title="Nothing found."
           message={
@@ -189,6 +190,7 @@ export default function SavedScreen() {
 
     return (
       <EmptyState
+        card
         pose="empty"
         title="Nothing tucked away yet."
         message="Anything you save will show up here."
