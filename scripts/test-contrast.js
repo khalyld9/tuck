@@ -78,6 +78,15 @@ for (const [themeName, theme] of [['light', lightTheme], ['dark', darkTheme]]) {
     const ok = r >= AA;
     if (!ok) failures += 1;
     console.log(`  ${ok ? 'ok  ' : 'FAIL'}  tone ${name.padEnd(8)} ink on bg   ${r.toFixed(2)}:1`);
+
+    // Solid category cards fill edge-to-edge with `onSolid` text on top, so
+    // that pairing has to clear AA in its own right.
+    const rs = contrast(tone.onSolid, tone.solid);
+    const oks = rs >= AA;
+    if (!oks) failures += 1;
+    console.log(
+      `  ${oks ? 'ok  ' : 'FAIL'}  tone ${name.padEnd(8)} onSolid/solid ${rs.toFixed(2)}:1`
+    );
   }
 
   const c = theme.colors;

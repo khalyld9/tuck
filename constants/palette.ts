@@ -114,6 +114,32 @@ export const palette = {
   roseDim: '#331E1E',
   roseBright: '#D5817F',
 
+  /**
+   * Vivid category fills.
+   *
+   * The muted hues above are tints meant to sit *behind* dark text; these are
+   * their saturated counterparts, meant to be filled edge-to-edge with white
+   * text on top. Every one clears WCAG AA against white (4.8:1 or better) —
+   * that constraint is what keeps them deep and confident rather than the
+   * neon primaries a colourful grid usually degenerates into.
+   *
+   * `On` variants are the same hue pushed darker, for the pressed state.
+   */
+  vividClay: '#A34F1C',
+  vividClayOn: '#8A4116',
+  vividRose: '#A83E3E',
+  vividRoseOn: '#8F3434',
+  vividSage: '#456F43',
+  vividSageOn: '#3A5D38',
+  vividOcean: '#2C6B80',
+  vividOceanOn: '#255A6C',
+  vividPlum: '#68497B',
+  vividPlumOn: '#573D67',
+  vividAmber: '#8A6620',
+  vividAmberOn: '#74551A',
+  vividNeutral: '#5C544B',
+  vividNeutralOn: '#4A443C',
+
   // ── Feedback ─────────────────────────────────────────────────────────────
   success: '#5B8C5A',
   successDark: '#7FAE7C',

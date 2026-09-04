@@ -93,6 +93,15 @@ export interface CategoryTone {
    * where the lighter hue already passes against a deep background.
    */
   ink: string;
+  /**
+   * Saturated edge-to-edge fill for a solid colour card, with `onSolid` text
+   * on top. Distinct from `bg`, which is a tint that sits *behind* dark text.
+   */
+  solid: string;
+  /** Pressed state for `solid`. */
+  solidPressed: string;
+  /** Text and icons drawn on `solid`. Always clears AA against it. */
+  onSolid: string;
 }
 
 export type CategoryToneName = 'clay' | 'sage' | 'plum' | 'ocean' | 'amber' | 'rose' | 'neutral';
@@ -151,13 +160,34 @@ export const lightTheme: Theme = {
     shadow: 'rgba(58, 44, 32, 1)',
   },
   tones: {
-    clay: { fg: palette.clayDeep, bg: palette.claySoft, ink: palette.clayInk },
-    sage: { fg: palette.sage, bg: palette.sageSoft, ink: palette.sageInk },
-    plum: { fg: palette.plum, bg: palette.plumSoft, ink: palette.plumInk },
-    ocean: { fg: palette.ocean, bg: palette.oceanSoft, ink: palette.oceanInk },
-    amber: { fg: '#9C7526', bg: palette.amberSoft, ink: palette.amberInk },
-    rose: { fg: palette.rose, bg: palette.roseSoft, ink: palette.roseInk },
-    neutral: { fg: palette.slate, bg: palette.sand, ink: palette.slate },
+    clay: {
+      fg: palette.clayDeep, bg: palette.claySoft, ink: palette.clayInk,
+      solid: palette.vividClay, solidPressed: palette.vividClayOn, onSolid: palette.white,
+    },
+    sage: {
+      fg: palette.sage, bg: palette.sageSoft, ink: palette.sageInk,
+      solid: palette.vividSage, solidPressed: palette.vividSageOn, onSolid: palette.white,
+    },
+    plum: {
+      fg: palette.plum, bg: palette.plumSoft, ink: palette.plumInk,
+      solid: palette.vividPlum, solidPressed: palette.vividPlumOn, onSolid: palette.white,
+    },
+    ocean: {
+      fg: palette.ocean, bg: palette.oceanSoft, ink: palette.oceanInk,
+      solid: palette.vividOcean, solidPressed: palette.vividOceanOn, onSolid: palette.white,
+    },
+    amber: {
+      fg: '#9C7526', bg: palette.amberSoft, ink: palette.amberInk,
+      solid: palette.vividAmber, solidPressed: palette.vividAmberOn, onSolid: palette.white,
+    },
+    rose: {
+      fg: palette.rose, bg: palette.roseSoft, ink: palette.roseInk,
+      solid: palette.vividRose, solidPressed: palette.vividRoseOn, onSolid: palette.white,
+    },
+    neutral: {
+      fg: palette.slate, bg: palette.sand, ink: palette.slate,
+      solid: palette.vividNeutral, solidPressed: palette.vividNeutralOn, onSolid: palette.white,
+    },
   },
 };
 
@@ -210,13 +240,34 @@ export const darkTheme: Theme = {
   // In dark mode the bright hues already clear AA on their deep backgrounds,
   // so text and icons can share one colour.
   tones: {
-    clay: { fg: palette.clayBright, bg: palette.clayDim, ink: palette.clayBright },
-    sage: { fg: palette.sageBright, bg: palette.sageDim, ink: palette.sageBright },
-    plum: { fg: palette.plumBright, bg: palette.plumDim, ink: palette.plumBright },
-    ocean: { fg: palette.oceanBright, bg: palette.oceanDim, ink: palette.oceanBright },
-    amber: { fg: palette.amberBright, bg: palette.amberDim, ink: palette.amberBright },
-    rose: { fg: palette.roseBright, bg: palette.roseDim, ink: palette.roseBright },
-    neutral: { fg: palette.smoke, bg: palette.loam, ink: palette.smoke },
+    clay: {
+      fg: palette.clayBright, bg: palette.clayDim, ink: palette.clayBright,
+      solid: palette.vividClay, solidPressed: palette.vividClayOn, onSolid: palette.white,
+    },
+    sage: {
+      fg: palette.sageBright, bg: palette.sageDim, ink: palette.sageBright,
+      solid: palette.vividSage, solidPressed: palette.vividSageOn, onSolid: palette.white,
+    },
+    plum: {
+      fg: palette.plumBright, bg: palette.plumDim, ink: palette.plumBright,
+      solid: palette.vividPlum, solidPressed: palette.vividPlumOn, onSolid: palette.white,
+    },
+    ocean: {
+      fg: palette.oceanBright, bg: palette.oceanDim, ink: palette.oceanBright,
+      solid: palette.vividOcean, solidPressed: palette.vividOceanOn, onSolid: palette.white,
+    },
+    amber: {
+      fg: palette.amberBright, bg: palette.amberDim, ink: palette.amberBright,
+      solid: palette.vividAmber, solidPressed: palette.vividAmberOn, onSolid: palette.white,
+    },
+    rose: {
+      fg: palette.roseBright, bg: palette.roseDim, ink: palette.roseBright,
+      solid: palette.vividRose, solidPressed: palette.vividRoseOn, onSolid: palette.white,
+    },
+    neutral: {
+      fg: palette.smoke, bg: palette.loam, ink: palette.smoke,
+      solid: palette.vividNeutral, solidPressed: palette.vividNeutralOn, onSolid: palette.white,
+    },
   },
 };
 
